@@ -1,0 +1,22 @@
+# Version is an indicator of the recommended version of burper to use
+# for this application.
+version = 1.0
+
+[service]
+name = "burp"
+build = "."
+
+[[dependencies]]
+name = "redis"
+image = "redis"
+command = "redis-server  --appendonly  yes --requirepass \"[burp: Random(12) AS redis_pass]\""
+ports = [[6379,6379]]
+
+[[dependencies.environment]]
+REDIS_PASSWORD="[burp: Use(redis_pass)]"
+
+[env]
+file = ".env"
+
+[[env.replacements]]
+REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
