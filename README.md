@@ -146,9 +146,10 @@ non-hashed secret token, Burp will handle the rest afterward.
   - [x] Parsing of Burp Functions
   - [x] Adding Functions
   - [x] Processing of Functions
-- [ ] Burp.TOML
-  - [ ] Structures
-  - [ ] Reading of TOML file
+  - [x] Basic Functions (mathematics, hash, etc)
+- [x] Burp.TOML
+  - [x] Structures
+  - [x] Reading of TOML file
 - [ ] Git Support
   - [ ] Cloning of Git repository
 - [ ] Docker Support
