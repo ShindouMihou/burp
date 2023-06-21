@@ -3,6 +3,7 @@ package functions
 import (
 	"burp/burper"
 	"burp/utils"
+	"github.com/alexedwards/argon2id"
 )
 
 var _ = burper.Add(burper.Function{
@@ -11,8 +12,14 @@ var _ = burper.Add(burper.Function{
 		if len(call.Args) < 1 {
 			return nil, burper.CreateMissingArgumentError(call, utils.Array("key", "string"))
 		}
-		// TODO: Add argon2id hashing here.
-		hash := []byte(call.Args[0])
-		return hash, nil
+		args, err := call.ExecStack(tree)
+		if err != nil {
+			return nil, burper.CreateError(call, err.Error())
+		}
+		hash, err := argon2id.CreateHash(args[0], argon2id.DefaultParams)
+		if err != nil {
+			return nil, burper.CreateError(call, err.Error())
+		}
+		return []byte(hash), nil
 	},
 })
