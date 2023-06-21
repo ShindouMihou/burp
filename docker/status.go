@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/rs/zerolog"
 	"strings"
 )
 
@@ -35,29 +35,43 @@ type ErrorDetail struct {
 	Message string `json:"message"`
 }
 
-func Handle(scanner *bufio.Scanner) error {
+func Handle(log zerolog.Logger, scanner *bufio.Scanner) error {
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		var stream StreamResponse
 		if err := json.Unmarshal(line, &stream); err != nil {
-			fmt.Println("encountered an error while unmarshaling: ", string(line))
-			fmt.Println("error: ", err)
+			log.Err(err).Str("line", string(line)).Msg("Failed Unmarshal")
 			continue
 		}
 		if stream.Stream != nil {
-			fmt.Print(*stream.Stream)
-			if !strings.Contains(*stream.Stream, "\n") {
-				fmt.Print("\n")
+			streams := strings.Split(*stream.Stream, "\n")
+			for _, str := range streams {
+				str := strings.ReplaceAll(str, "\n", "")
+				str = strings.TrimSpace(str)
+				if len(str) == 0 {
+					continue
+				}
+				if strings.HasPrefix(str, "\u001b[0m") {
+					continue
+				}
+				log.Print(str)
 			}
 		}
 		if stream.Status != nil {
-			fmt.Print(*stream.Status)
-			if stream.ProgressDetail != nil {
-				fmt.Print(" ", *stream.ProgressDetail)
-			} else {
-				if !strings.Contains(*stream.Status, "\n") {
-					fmt.Print("\n")
+			streams := strings.Split(*stream.Status, "\n")
+			for _, str := range streams {
+				str := strings.ReplaceAll(str, "\n", "")
+				str = strings.TrimSpace(str)
+				if len(str) == 0 {
+					continue
 				}
+				if strings.HasPrefix(str, "\u001b[0m") {
+					continue
+				}
+				log.Print(str)
+			}
+			if stream.ProgressDetail != nil {
+				log.Print(" ", *stream.ProgressDetail)
 			}
 		}
 		if stream.Error != nil {

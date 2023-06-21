@@ -2,7 +2,7 @@ package reader
 
 import (
 	"burp/burper"
-	"fmt"
+	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -17,7 +17,7 @@ func Open(file string) (*os.File, error) {
 func Close(f *os.File) {
 	err := f.Close()
 	if err != nil {
-		fmt.Println("ERR burp failed to close burp.toml: ", err)
+		log.Err(err).Str("origin", "burp_toml").Msg("Failed to close body")
 	}
 }
 

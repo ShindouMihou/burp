@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/errdefs"
+	"github.com/rs/zerolog/log"
 )
 
 func GetContainer(name string) (*types.ContainerJSON, error) {
@@ -25,12 +26,13 @@ func GetContainer(name string) (*types.ContainerJSON, error) {
 
 func Deploy(image string, environments []string, ctr *services.Container) (*string, error) {
 	name := "burp." + ctr.Name
+	logger := log.With().Str("name", ctr.Name).Logger()
 	liveContainer, err := GetContainer(name)
 	if err != nil {
 		return nil, err
 	}
 	if liveContainer != nil {
-		fmt.Println("Removing the container ", name, " with id ", liveContainer.ID)
+		logger.Warn().Str("id", liveContainer.ID).Msg("Removing Container")
 		err = Client.ContainerRemove(context.TODO(), liveContainer.ID, types.ContainerRemoveOptions{
 			Force: true,
 		})
@@ -49,7 +51,9 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 			return nil, err
 		}
 		if !hasVolume {
-			fmt.Println("Cannot find a volume named ", mnt.Source, ", attempting to create.")
+			logger := logger.With().Str("volume", mnt.Source).Logger()
+			logger.Warn().Msg("Cannot find the volume specified")
+			logger.Info().Msg("Creating volume")
 			_, err = Client.VolumeCreate(context.TODO(), volume.CreateOptions{Name: mnt.Source})
 			if err != nil {
 				return nil, err
@@ -66,7 +70,9 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 			return nil, err
 		}
 		if !hasNetwork {
-			fmt.Println("Cannot find a network named ", net, ", attempting to create.")
+			logger := logger.With().Str("network", net).Logger()
+			logger.Warn().Msg("Cannot find the network specified")
+			logger.Info().Msg("Creating network")
 			_, err := Client.NetworkCreate(context.TODO(), net, types.NetworkCreate{
 				CheckDuplicate: true,
 			})
@@ -86,7 +92,9 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 		return nil, err
 	}
 	if !hasImage {
-		fmt.Println("Cannot find the image ", image, ", attempting to pull.")
+		logger := logger.With().Str("mage", image).Logger()
+		logger.Warn().Msg("Cannot find the image specified")
+		logger.Info().Msg("Pulling image")
 		if err = Pull("mongo"); err != nil {
 			return nil, err
 		}

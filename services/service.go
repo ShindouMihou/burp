@@ -19,7 +19,6 @@ func (service *Service) Clone() (*string, error) {
 		directory += addr.GetBranchName() + "/"
 	}
 	directory = strings.ToLower(directory)
-	fmt.Println(directory)
 	exists, err := utils.Exists(directory)
 	if err != nil {
 		return nil, err

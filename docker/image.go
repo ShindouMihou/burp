@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/rs/zerolog/log"
 	"io"
 	"strings"
 )
@@ -33,6 +34,7 @@ func HasImage(name string) (bool, error) {
 }
 
 func Pull(image string) error {
+	logger := log.With().Str("pull", image).Logger()
 	response, err := Client.ImagePull(context.TODO(), image, types.ImagePullOptions{})
 	if err != nil {
 		return err
@@ -40,14 +42,15 @@ func Pull(image string) error {
 	defer func(response io.ReadCloser) {
 		err := response.Close()
 		if err != nil {
-			fmt.Println("Failed to close Docker Pull body: ", err)
+			logger.Err(err).Str("origin", "pull").Msg("Failed to close body")
 		}
 	}(response)
-	return Handle(bufio.NewScanner(response))
+	return Handle(logger, bufio.NewScanner(response))
 }
 
 func Build(dir string, name string) error {
 	tar, err := archive.TarWithOptions(dir, &archive.TarOptions{})
+	logger := log.With().Str("build", name).Logger()
 	if err != nil {
 		return err
 	}
@@ -60,12 +63,12 @@ func Build(dir string, name string) error {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Failed to close Docker Build body: ", err)
+			logger.Err(err).Str("origin", "build").Msg("Failed to close body")
 		}
 	}(build.Body)
-	if err = Handle(bufio.NewScanner(build.Body)); err != nil {
+	if err = Handle(logger, bufio.NewScanner(build.Body)); err != nil {
 		return err
 	}
-	fmt.Println("Successfully created burp/" + name)
+	logger.Info().Msg("Created Image")
 	return nil
 }
