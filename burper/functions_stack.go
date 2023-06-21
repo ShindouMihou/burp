@@ -19,7 +19,7 @@ func (call *Call) ExecStack(tree *Tree) ([]string, error) {
 			}
 			arg = res
 		}
-		stack = append(stack, a)
+		stack = append(stack, string(arg))
 	}
 	return stack, nil
 }
