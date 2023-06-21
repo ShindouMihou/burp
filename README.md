@@ -152,11 +152,15 @@ non-hashed secret token, Burp will handle the rest afterward.
   - [x] Reading of TOML file
 - [x] Git Support
   - [x] Cloning of Git repository
-- [ ] Docker Support
-  - [ ] Pulling images
-  - [ ] Building images
-  - [ ] Spawning services
-  - [ ] Killing services
+- [x] Docker Support
+  - [x] Pulling images
+  - [x] Building images
+  - [x] Spawning services
+  - [x] Killing services
+- [ ] Agent Client
+  - [ ] Authentication
+  - [ ] Deploying Applications
+  - [ ] Stopping Applications
 - [ ] CLI
   - [ ] `burp hash`
   - [ ] `burp login`
