@@ -1,6 +1,7 @@
 package main
 
 import (
+	"burp/auth"
 	"burp/burper/functions"
 	"burp/burpy"
 	"burp/docker"
@@ -9,7 +10,9 @@ import (
 	"context"
 	"errors"
 	"github.com/BurntSushi/toml"
-	"log"
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
 	"sync"
@@ -21,21 +24,30 @@ type ShutdownTask = func(ctx context.Context) error
 
 func main() {
 	functions.RegisterFunctions()
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	log.Info().Msg("Loading environment configuration")
+	_ = godotenv.Load()
+	auth.Load()
+
 	tree, err := reader.Read("burp.toml")
 	if err != nil {
-		log.Fatalln(err)
+		log.Err(err)
 		return
 	}
+
 	var burp services.Burp
 	_, err = toml.Decode(tree.String(), &burp)
 	if err != nil {
-		log.Fatalln(err)
+		log.Err(err)
 		return
 	}
+
 	if err = docker.Init(); err != nil {
-		log.Fatalln(err)
+		log.Err(err)
 		return
 	}
+
 	burpy.Deploy(&burp)
 	<-Shutdown(context.Background(), 5*time.Second, map[string]ShutdownTask{
 		"cleanup_burp": func(ctx context.Context) error {
@@ -51,9 +63,9 @@ func Shutdown(ctx context.Context, timeout time.Duration, operations map[string]
 		signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 		<-s
 
-		log.Println("Preparing to shutdown burp-agent...")
+		log.Info().Msg("Preparing to shutdown burp-agent...")
 		out := time.AfterFunc(timeout, func() {
-			log.Fatalln("Graceful shutdown couldn't be completed even after timeout, forcing...")
+			log.Error().Msg("Graceful shutdown couldn't be completed even after timeout, forcing...")
 		})
 		defer out.Stop()
 		var wg sync.WaitGroup
@@ -65,10 +77,10 @@ func Shutdown(ctx context.Context, timeout time.Duration, operations map[string]
 			go func() {
 				defer wg.Done()
 				if err := operation(ctx); err != nil {
-					log.Println("Failed to complete shutdown task (", key, "): ", err)
+					log.Err(err).Str("task", key).Msg("Failed to complete shutdown task")
 					return
 				}
-				log.Println("Shutdown task (", key, ") was completed successfully.")
+				log.Info().Str("task", key).Msg("Shutdown task was completed successfully.")
 			}()
 		}
 		wg.Wait()

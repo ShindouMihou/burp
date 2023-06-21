@@ -5,14 +5,11 @@ import (
 	"burp/services"
 	"context"
 	"github.com/docker/docker/api/types"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"os"
 	"path/filepath"
 )
 
 func Deploy(burp *services.Burp) {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	dir, err := burp.Service.Clone()
 	if err != nil {
 		log.Err(err).Msg("Cloning Service")

@@ -1,10 +1,14 @@
 package services
 
 import (
+	"burp/auth"
 	"burp/utils"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	giturl "github.com/kubescape/go-git-url"
+	"github.com/rs/zerolog/log"
 	"os"
 	"strings"
 )
@@ -14,6 +18,11 @@ func (service *Service) Clone() (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	logger := log.With().
+		Str("owner", addr.GetOwnerName()).
+		Str("repository", addr.GetRepoName()).
+		Str("domain", addr.GetHostName()).
+		Logger()
 	directory := fmt.Sprint(".burp/.temp/", addr.GetHostName(), "/", addr.GetOwnerName(), "/", addr.GetRepoName(), "/")
 	if addr.GetBranchName() != "" {
 		directory += addr.GetBranchName() + "/"
@@ -24,6 +33,7 @@ func (service *Service) Clone() (*string, error) {
 		return nil, err
 	}
 	if exists {
+		logger.Info().Str("destination", directory).Msg("Cleaning Clone Destination")
 		err := os.RemoveAll(directory)
 		if err != nil {
 			return nil, err
@@ -32,12 +42,22 @@ func (service *Service) Clone() (*string, error) {
 	if err = os.MkdirAll(directory, os.ModePerm); err != nil {
 		return nil, err
 	}
+	var transportAuth transport.AuthMethod = nil
+	if creds, ok := auth.Git[addr.GetHostName()]; ok {
+		transportAuth = &http.BasicAuth{
+			Username: creds.Username,
+			Password: creds.Password,
+		}
+	}
+	logger.Info().Bool("authenticated", transportAuth != nil).Msg("Cloning Repository")
 	_, err = git.PlainClone(directory, false, &git.CloneOptions{
-		URL: service.Repository,
+		URL:  service.Repository,
+		Auth: transportAuth,
 	})
 	if err != nil {
 		return nil, err
 	}
+	logger.Info().Msg("Cloned")
 	return &directory, nil
 }
 

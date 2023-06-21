@@ -2,11 +2,16 @@ package docker
 
 import (
 	"bufio"
+	"burp/auth"
 	"burp/utils"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -34,8 +39,28 @@ func HasImage(name string) (bool, error) {
 }
 
 func Pull(image string) error {
+	image = strings.ToLower(image)
 	logger := log.With().Str("pull", image).Logger()
-	response, err := Client.ImagePull(context.TODO(), image, types.ImagePullOptions{})
+	ref, err := reference.ParseNamed(image)
+	if err != nil {
+		return err
+	}
+	domain := reference.Domain(ref)
+	logger.Info().Str("domain", domain).Msg("Pulling Image")
+
+	var registryAuth string
+	if creds, ok := auth.Docker[domain]; ok {
+		config := &registry.AuthConfig{Username: creds.Username, Password: creds.Password}
+		encoded, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+		registryAuth = base64.URLEncoding.EncodeToString(encoded)
+	}
+
+	response, err := Client.ImagePull(context.TODO(), image, types.ImagePullOptions{
+		RegistryAuth: registryAuth,
+	})
 	if err != nil {
 		return err
 	}
