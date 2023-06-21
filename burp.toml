@@ -16,7 +16,8 @@ ports = [[6379,6379]]
 REDIS_PASSWORD="[burp: Use(redis_pass)]"
 
 [environment]
-file = ".env"
+file = "[burp].env"
+output = ".env"
 
 [environment.replacements]
 REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"

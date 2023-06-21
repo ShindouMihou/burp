@@ -29,5 +29,6 @@ type Burp struct {
 
 type Environment struct {
 	File         string            `toml:"file" json:"file"`
+	Output       string            `toml:"output" json:"output"`
 	Replacements map[string]string `toml:"replacements" json:"replacements"`
 }

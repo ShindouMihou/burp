@@ -76,11 +76,15 @@ REDIS_URI=
 ```
 ```toml
 [env]
-file = ".env"
+file = "[burp].env"
+output = ".env"
 
 [[env.replacements]]
 REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
 ```
+
+> As Burp overrides the file, we highly recommend setting the `file` into something other than `.env` such as 
+> `[burp].env` which serves as a template.
 
 ##### Setting Up Burp
 
