@@ -1,5 +1,12 @@
-# Version is an indicator of the recommended version of burper to use
-# for this application.
+#--------------------
+# Burp.toml
+#
+# Temporarily, this doesn't serve as a proper Burp.toml, but somewhat
+# similar. It serves more of a demonstration of what Burp can achieve.
+#
+# A proper Burp.toml will be created once Burp is ready, it will then be used
+# in the future for Burp deployments.
+#---------------------
 version = 1.0
 
 [service]
@@ -19,9 +26,11 @@ REDIS_PASSWORD="[burp: Use(redis_pass)]"
 file = "[burp].env"
 output = ".env"
 
+[[calls]]
+IGNORE_1="[burp: Store(hello,world)]"
+IGNORE_2="[burp: Store(world,hello)]"
+
 [environment.replacements]
-# There are functions that can accept calls to another function, to call another function as an argument
-# of a function, you have to do it such as below:
 REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
 
 # These are intended to test different functions
@@ -33,3 +42,5 @@ SUBTRACTION_TEST="[burp: Sub(2,1)]"
 MULTIPLICATION_TEST="[burp: Mpy(2,2)]"
 DIVISION_TEST="[burp: Div(2,2)]"
 MODULO_TEST="[burp: Mod(2,2)]"
+RANDOM_NUMBER_TEST="[burp: RandN(500)]"
+STORE_TEST="[burp: Concat(burp: Use(hello), , burp: Use(world))]"
