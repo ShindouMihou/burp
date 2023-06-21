@@ -150,8 +150,8 @@ non-hashed secret token, Burp will handle the rest afterward.
 - [x] Burp.TOML
   - [x] Structures
   - [x] Reading of TOML file
-- [ ] Git Support
-  - [ ] Cloning of Git repository
+- [x] Git Support
+  - [x] Cloning of Git repository
 - [ ] Docker Support
   - [ ] Pulling images
   - [ ] Building images

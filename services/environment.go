@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-func (env *Environment) Translate() (*string, error) {
-	f, err := reader.Open(env.File)
+func (env *Environment) Translate(dir string) (*string, error) {
+	f, err := reader.Open(dir + env.File)
 	if err != nil {
 		return nil, err
 	}
@@ -43,18 +43,18 @@ func (env *Environment) Translate() (*string, error) {
 	return utils.Ptr(b.String()), nil
 }
 
-func (env *Environment) Save() error {
-	translation, err := env.Translate()
+func (env *Environment) Save(dir string) error {
+	translation, err := env.Translate(dir)
 	if err != nil {
 		return err
 	}
 	if strings.Contains(env.Output, "/") {
-		err = os.MkdirAll(env.Output, os.ModePerm)
+		err = os.MkdirAll(dir+env.Output, os.ModePerm)
 		if err != nil {
 			return err
 		}
 	}
-	f, err := os.Create(env.Output)
+	f, err := os.Create(dir + env.Output)
 	if err != nil {
 		return err
 	}
