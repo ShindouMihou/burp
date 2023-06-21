@@ -2,6 +2,8 @@ package main
 
 import (
 	"burp/burper/functions"
+	"burp/burpy"
+	"burp/docker"
 	"burp/reader"
 	"burp/services"
 	"context"
@@ -30,16 +32,11 @@ func main() {
 		log.Fatalln(err)
 		return
 	}
-	dir, err := burp.Service.Clone()
-	if err != nil {
+	if err = docker.Init(); err != nil {
 		log.Fatalln(err)
 		return
 	}
-	err = burp.Environment.Save(*dir)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
+	burpy.Deploy(&burp)
 	<-Shutdown(context.Background(), 5*time.Second, map[string]ShutdownTask{
 		"cleanup_burp": func(ctx context.Context) error {
 			return Cleanup()

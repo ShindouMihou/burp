@@ -1,5 +1,7 @@
 package utils
 
+import "strings"
+
 func Map[T any, R any](a []T, t func(v T) R) []R {
 	var final []R
 	for _, v := range a {
@@ -49,5 +51,11 @@ func AnyMatch[T any](a []T, predicate func(b T) bool) bool {
 func AnyMatchString(a []string, match string) bool {
 	return AnyMatch(a, func(b string) bool {
 		return b == match
+	})
+}
+
+func AnyMatchStringCaseInsensitive(a []string, match string) bool {
+	return AnyMatch(a, func(b string) bool {
+		return strings.EqualFold(b, match)
 	})
 }

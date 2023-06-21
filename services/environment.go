@@ -7,6 +7,7 @@ import (
 	"burp/utils"
 	"bytes"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -43,18 +44,42 @@ func (env *Environment) Translate(dir string) (*string, error) {
 	return utils.Ptr(b.String()), nil
 }
 
+func (env *Environment) Read(dir string) ([]string, error) {
+	d := filepath.Join(dir, env.Output)
+	f, err := reader.Open(d)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close(f)
+	buf := bufio.NewScanner(f)
+	var e []string
+	for buf.Scan() {
+		line := buf.Bytes()
+		if bytes.HasPrefix(line, burper.COMMENT_KEY) {
+			continue
+		}
+		parts := bytes.SplitN(line, burper.EQUALS_KEY, 2)
+		if len(parts) != 2 {
+			continue
+		}
+		e = append(e, string(line))
+	}
+	return e, nil
+}
+
 func (env *Environment) Save(dir string) error {
 	translation, err := env.Translate(dir)
 	if err != nil {
 		return err
 	}
+	d := filepath.Join(dir, env.Output)
 	if strings.Contains(env.Output, "/") {
-		err = os.MkdirAll(dir+env.Output, os.ModePerm)
+		err = os.MkdirAll(filepath.Dir(d), os.ModePerm)
 		if err != nil {
 			return err
 		}
 	}
-	f, err := os.Create(dir + env.Output)
+	f, err := os.Create(d)
 	if err != nil {
 		return err
 	}

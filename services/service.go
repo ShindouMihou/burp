@@ -41,3 +41,7 @@ func (service *Service) Clone() (*string, error) {
 	}
 	return &directory, nil
 }
+
+func (service *Service) GetImage() string {
+	return fmt.Sprint("burp/", service.Name)
+}

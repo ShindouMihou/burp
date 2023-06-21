@@ -44,3 +44,12 @@ func IsWhitespace(source []byte) bool {
 	}
 	return true
 }
+
+func IsNumeric(source []byte) bool {
+	for _, char := range source {
+		if !unicode.IsNumber(rune(char)) {
+			return false
+		}
+	}
+	return true
+}
