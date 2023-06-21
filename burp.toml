@@ -22,6 +22,14 @@ output = ".env"
 [environment.replacements]
 # There are functions that can accept calls to another function, to call another function as an argument
 # of a function, you have to do it such as below:
-REDIS_PASSWORD_HASHED="[burp: Hash(burp: Use(redis_pass))]"
 REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
-REDIS_CONCAT_TEST="[burp: Concat(burp: Use(redis_pass), ,burp: Random(4) AS ran, ,burp: Hash(burp:Use(ran)))]"
+
+# These are intended to test different functions
+# to see if they function as properly.
+HASH_TEST="[burp: Hash(burp: Use(redis_pass))]"
+CONCAT_TEST="[burp: Concat(burp: Use(redis_pass), ,burp: Random(4) AS ran, ,burp: Hash(burp:Use(ran)))]"
+ADDITION_TEST="[burp: Add(1,1,5,5)]"
+SUBTRACTION_TEST="[burp: Sub(2,1)]"
+MULTIPLICATION_TEST="[burp: Mpy(2,2)]"
+DIVISION_TEST="[burp: Div(2,2)]"
+MODULO_TEST="[burp: Mod(2,2)]"
