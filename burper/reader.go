@@ -126,7 +126,11 @@ func extractArguments(source []byte) []string {
 			continue
 		}
 		if char == ',' {
-			args = append(args, string(bytes.TrimSpace(source[start:index])))
+			a := source[start:index]
+			if !utils.IsWhitespace(a) {
+				a = bytes.TrimSpace(source[start:index])
+			}
+			args = append(args, string(a))
 			start = index + 1
 			continue
 		}

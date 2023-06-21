@@ -3,7 +3,8 @@ package main
 import (
 	"burp/burper/functions"
 	"burp/reader"
-	"fmt"
+	"burp/services"
+	"github.com/BurntSushi/toml"
 	"log"
 )
 
@@ -14,5 +15,15 @@ func main() {
 		log.Fatalln(err)
 		return
 	}
-	fmt.Println(tree.String())
+	var burp services.Burp
+	_, err = toml.Decode(tree.String(), &burp)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	err = burp.Environment.Save()
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
 }

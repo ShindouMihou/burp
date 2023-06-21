@@ -24,3 +24,4 @@ output = ".env"
 # of a function, you have to do it such as below:
 REDIS_PASSWORD_HASHED="[burp: Hash(burp: Use(redis_pass))]"
 REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
+REDIS_CONCAT_TEST="[burp: Concat(burp: Use(redis_pass), ,burp: Random(4) AS ran, ,burp: Hash(burp:Use(ran)))]"

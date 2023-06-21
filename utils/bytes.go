@@ -1,6 +1,9 @@
 package utils
 
-import "bytes"
+import (
+	"bytes"
+	"unicode"
+)
 
 func HasPrefix(source, prefix []byte) bool {
 	return len(source) >= len(prefix) && bytes.EqualFold(source[0:len(prefix)], prefix)
@@ -31,4 +34,13 @@ func Replace(source []byte, start int, end int, replacement []byte) []byte {
 		result = append(result, char)
 	}
 	return result
+}
+
+func IsWhitespace(source []byte) bool {
+	for _, char := range source {
+		if !unicode.IsSpace(rune(char)) {
+			return false
+		}
+	}
+	return true
 }
