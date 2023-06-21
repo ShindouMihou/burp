@@ -2,6 +2,7 @@ package functions
 
 import (
 	"burp/burper"
+	"burp/utils"
 	"strings"
 )
 
@@ -20,6 +21,9 @@ var _ = burper.Add(burper.Function{
 			}
 			res = b.String()
 		} else {
+			if len(args) < 2 {
+				return nil, burper.CreateMissingArgumentError(call, utils.Array("addends", "string"))
+			}
 			res = args[0] + args[1]
 		}
 		return []byte(res), nil
