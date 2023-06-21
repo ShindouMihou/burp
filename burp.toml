@@ -12,11 +12,11 @@ image = "redis"
 command = "redis-server  --appendonly  yes --requirepass \"[burp: Random(12) AS redis_pass]\""
 ports = [[6379,6379]]
 
-[[dependencies.environment]]
+[dependencies.environment]
 REDIS_PASSWORD="[burp: Use(redis_pass)]"
 
-[env]
+[environment]
 file = ".env"
 
-[[env.replacements]]
+[environment.replacements]
 REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
