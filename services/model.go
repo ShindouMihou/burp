@@ -16,8 +16,9 @@ type Container struct {
 }
 
 type Service struct {
-	Name  string `toml:"name" json:"name"`
-	Build string `toml:"build" json:"build"`
+	Name       string `toml:"name" json:"name"`
+	Build      string `toml:"build" json:"build"`
+	Repository string `toml:"repository" json:"repository"`
 	Container
 }
 

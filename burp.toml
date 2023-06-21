@@ -12,6 +12,7 @@ version = 1.0
 [service]
 name = "burp"
 build = "."
+repository = "https://github.com/ShindouMihou/burp"
 
 [[dependencies]]
 name = "redis"
