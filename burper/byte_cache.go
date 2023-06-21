@@ -9,3 +9,4 @@ var COMPLETE_PREFIX_KEY = []byte{'b', 'u', 'r', 'p', ':'}
 
 var COMMENT_KEY = []byte{'#'}
 var EQUALS_KEY = []byte{'='}
+var WHITESPACE_KEY = []byte{'='}
