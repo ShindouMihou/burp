@@ -42,12 +42,17 @@ func main() {
 		log.Err(err).Msg("Failed Unmarshal")
 		return
 	}
+	err = burpy.Package(&burp)
+	if err != nil {
+		log.Err(err).Msg("Failed Package")
+		return
+	}
 	if err = docker.Init(); err != nil {
 		log.Err(err)
 		return
 	}
-
 	burpy.Deploy(&burp)
+	defer burpy.Clear(&burp)
 	<-Shutdown(context.Background(), 5*time.Second, map[string]ShutdownTask{
 		"cleanup_burp": func(ctx context.Context) error {
 			return Cleanup()

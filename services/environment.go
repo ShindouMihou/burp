@@ -11,7 +11,7 @@ import (
 )
 
 func (env *Environment) Translate(dir string) (*string, error) {
-	f, err := reader.Open(dir + env.File)
+	f, err := reader.Open(filepath.Join(dir, env.File))
 	if err != nil {
 		return nil, err
 	}

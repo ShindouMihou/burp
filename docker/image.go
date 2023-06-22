@@ -74,8 +74,9 @@ func Pull(image string) error {
 }
 
 func Build(dir string, name string) error {
-	tar, err := archive.TarWithOptions(dir, &archive.TarOptions{})
 	logger := log.With().Str("build", name).Logger()
+
+	tar, err := archive.TarWithOptions(dir, &archive.TarOptions{})
 	if err != nil {
 		return err
 	}

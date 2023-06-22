@@ -2,12 +2,66 @@ package burpy
 
 import (
 	"burp/docker"
+	"burp/reader"
 	"burp/services"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/rs/zerolog/log"
+	"os"
 	"path/filepath"
 )
+
+var TemporaryFilesFolder = filepath.Join(".burp", ".temp", ".files")
+
+func Package(burp *services.Burp) error {
+	var hashes []services.HashedInclude
+	dir := filepath.Join(TemporaryFilesFolder, burp.Service.Name)
+	for _, include := range burp.Includes {
+		name := filepath.Join(dir, "pkg", filepath.Base(include.Target))
+		hash, err := reader.Copy(include.Source, name)
+		if err != nil {
+			return err
+		}
+		log.Info().Str("file", name).Str("hash", *hash).Msg("Copied File")
+		hashes = append(hashes, services.HashedInclude{Include: include, Hash: *hash})
+	}
+	marshal, err := json.Marshal(hashes)
+	if err != nil {
+		return err
+	}
+	err = reader.Save(filepath.Join(dir, "meta.json"), marshal)
+	if err != nil {
+		return err
+	}
+	log.Info().Str("file", "hashes.json").Msg("Saved File")
+	tarName := fmt.Sprint(burp.Service.Name, "_includes.tar.gz")
+	tarName = filepath.Join(TemporaryFilesFolder, ".packaged", tarName)
+	err = reader.Tar(dir, tarName)
+	if err != nil {
+		return err
+	}
+	err = os.RemoveAll(dir)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Clear cleans up all the deployment packages that were involved in this service.
+func Clear(burp *services.Burp) error {
+	paths := []string{
+		filepath.Join(TemporaryFilesFolder, ".packaged", fmt.Sprint(burp.Service.Name, "_includes.tar.gz")),
+		filepath.Join(services.TemporaryCloneFolder, burp.Service.Name),
+	}
+	for _, path := range paths {
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func Deploy(burp *services.Burp) {
 	dir, err := burp.Service.Clone()

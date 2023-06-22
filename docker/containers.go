@@ -92,7 +92,7 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 		return nil, err
 	}
 	if !hasImage {
-		logger := logger.With().Str("mage", image).Logger()
+		logger := logger.With().Str("image", image).Logger()
 		logger.Warn().Msg("Cannot find the image specified")
 		logger.Info().Msg("Pulling image")
 		if err = Pull("mongo"); err != nil {

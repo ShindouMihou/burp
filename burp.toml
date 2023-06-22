@@ -9,15 +9,16 @@
 #---------------------
 version = 1.0
 
+includes = [
+    { source = "data/git.toml", target = "data/get.toml" },
+    { source = "data/docker.toml", target = "data/docker.toml" },
+]
+
 [service]
 name = "primrose_core"
 build = "core/"
 repository = "https://github.com/ShindouMihou/primrose"
 restart_policy = { name = "always" }
-includes = [
-    { source = "data/git.toml", target = "data/get.toml" },
-    { source = "data/docker.toml", target = "data/docker.toml" },
-]
 
 [[dependencies]]
 name = "mongo"

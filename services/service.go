@@ -10,8 +10,11 @@ import (
 	giturl "github.com/kubescape/go-git-url"
 	"github.com/rs/zerolog/log"
 	"os"
+	"path/filepath"
 	"strings"
 )
+
+var TemporaryCloneFolder = filepath.Join(".burp", ".temp", "repos")
 
 func (service *Service) Clone() (*string, error) {
 	addr, err := giturl.NewGitURL(service.Repository)
@@ -23,9 +26,9 @@ func (service *Service) Clone() (*string, error) {
 		Str("repository", addr.GetRepoName()).
 		Str("domain", addr.GetHostName()).
 		Logger()
-	directory := fmt.Sprint(".burp/.temp/", addr.GetHostName(), "/", addr.GetOwnerName(), "/", addr.GetRepoName(), "/")
+	directory := filepath.Join(TemporaryCloneFolder, service.Name, addr.GetHostName(), addr.GetOwnerName(), addr.GetRepoName())
 	if addr.GetBranchName() != "" {
-		directory += addr.GetBranchName() + "/"
+		directory = filepath.Join(directory, addr.GetBranchName())
 	}
 	directory = strings.ToLower(directory)
 	exists, err := utils.Exists(directory)

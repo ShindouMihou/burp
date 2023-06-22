@@ -30,9 +30,8 @@ type PlatformVolume struct {
 }
 
 type Service struct {
-	Build      string    `toml:"build" json:"build"`
-	Repository string    `toml:"repository" json:"repository"`
-	Includes   []Include `toml:"includes,omitempty" json:"includes,omitempty"`
+	Build      string `toml:"build" json:"build"`
+	Repository string `toml:"repository" json:"repository"`
 	Container
 }
 
@@ -41,6 +40,7 @@ type Burp struct {
 	Dependencies []Dependency     `toml:"dependencies,omitempty" json:"dependencies,omitempty"`
 	Environment  *Environment     `toml:"environment,omitempty" json:"environment,omitempty"`
 	Volumes      []PlatformVolume `toml:"volumes,omitempty" json:"volumes,omitempty"`
+	Includes     []Include        `toml:"includes,omitempty" json:"includes,omitempty"`
 }
 
 type Environment struct {
@@ -52,6 +52,11 @@ type Environment struct {
 type Include struct {
 	Source string `toml:"source" json:"source"`
 	Target string `toml:"target" json:"target"`
+}
+
+type HashedInclude struct {
+	Include
+	Hash string `toml:"hash" json:"hash"`
 }
 
 func (burp *Burp) TOML() ([]byte, error) {
