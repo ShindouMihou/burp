@@ -1,0 +1,4 @@
+[GET /: Recommended passage to test your authentication with the server]
+RETURNS:
+    STATUS: 204
+    BODY: [none]

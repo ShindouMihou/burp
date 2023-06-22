@@ -1,8 +1,8 @@
 package main
 
 import (
-	"burp/burper"
-	"burp/burper/functions"
+	"burp/internal/burper"
+	"burp/internal/burper/functions"
 	"testing"
 )
 

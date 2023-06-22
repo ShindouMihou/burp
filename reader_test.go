@@ -1,7 +1,7 @@
 package main
 
 import (
-	"burp/burper"
+	"burp/internal/burper"
 	"errors"
 	"testing"
 )
