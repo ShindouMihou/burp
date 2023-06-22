@@ -16,13 +16,13 @@ type ContainerVolume struct {
 	Type     string `toml:"type" json:"type"`
 	Source   string `toml:"source" json:"source"`
 	Target   string `toml:"target" json:"target"`
-	ReadOnly bool   `toml:"readonly" json:"readonly"`
+	ReadOnly bool   `toml:"readonly,omitempty" json:"readonly,omitempty"`
 }
 
 type ContainerResourceLimits struct {
-	CPUs       *float32           `toml:"cpus" json:"cpus"`
-	Memory     *ResourceSizeLimit `toml:"memory" json:"memory"`
-	SwapMemory *ResourceSizeLimit `toml:"swap_memory" json:"swap_memory"`
+	CPUs       *float32           `toml:"cpus,omitempty" json:"cpus,omitempty"`
+	Memory     *ResourceSizeLimit `toml:"memory,omitempty" json:"memory,omitempty"`
+	SwapMemory *ResourceSizeLimit `toml:"swap_memory,omitempty" json:"swap_memory,omitempty"`
 }
 
 type ResourceSizeLimit struct {
@@ -31,7 +31,7 @@ type ResourceSizeLimit struct {
 
 type ContainerRestartPolicy struct {
 	Name              string `toml:"name" json:"name"`
-	MaximumRetryCount int    `toml:"maximum_retry_count" json:"maximum_retry_count"`
+	MaximumRetryCount int    `toml:"maximum_retry_count,omitempty" json:"maximum_retry_count,omitempty"`
 }
 
 func (limit *ResourceSizeLimit) UnmarshalText(text []byte) error {

@@ -33,7 +33,7 @@ func (service *Service) Clone() (*string, error) {
 		return nil, err
 	}
 	if exists {
-		logger.Info().Str("destination", directory).Msg("Cleaning Clone Destination")
+		logger.Info().Str("destination", directory).Msg("Cleaning Clone Target")
 		err := os.RemoveAll(directory)
 		if err != nil {
 			return nil, err
@@ -44,6 +44,7 @@ func (service *Service) Clone() (*string, error) {
 	}
 	var transportAuth transport.AuthMethod = nil
 	if creds, ok := auth.Git[addr.GetHostName()]; ok {
+		log.Info().Any("creds", creds).Msg("Credential Loaded")
 		transportAuth = &http.BasicAuth{
 			Username: creds.Username,
 			Password: creds.Password,

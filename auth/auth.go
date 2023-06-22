@@ -1,8 +1,11 @@
 package auth
 
 import (
+	"bufio"
 	"burp/env"
-	"github.com/BurntSushi/toml"
+	"burp/reader"
+	"bytes"
+	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog/log"
 	"os"
 	"strings"
@@ -10,7 +13,7 @@ import (
 
 type Authentication struct {
 	Domain   string `toml:"domain" json:"domain"`
-	Username string `toml:"username" json:"username"`
+	Username string `toml:"username" json:"-"`
 	Password string `toml:"password" json:"-"`
 }
 
@@ -23,15 +26,25 @@ type AuthenticationToml struct {
 
 func Add(file string, store map[string]Authentication) error {
 	auth := AuthenticationToml{}
-	_, err := toml.DecodeFile(file, &auth)
+	f, err := reader.Open(file)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
 		return err
 	}
+	scanner := bufio.NewScanner(f)
+	var b bytes.Buffer
+	for scanner.Scan() {
+		b.Write(scanner.Bytes())
+	}
+	err = toml.Unmarshal(b.Bytes(), &auth)
+	if err != nil {
+		return err
+	}
 	for _, creds := range auth.Auth {
 		creds := creds
+		log.Info().Any("creds", creds).Msg("Credential Loaded")
 		store[strings.ToLower(creds.Domain)] = creds
 	}
 	return nil

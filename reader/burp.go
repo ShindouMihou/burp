@@ -4,6 +4,8 @@ import (
 	"burp/burper"
 	"github.com/rs/zerolog/log"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func Open(file string) (*os.File, error) {
@@ -28,4 +30,23 @@ func Read(file string) (*burper.Tree, error) {
 	}
 	defer Close(f)
 	return burper.New(f)
+}
+
+func Save(file string, data []byte) error {
+	if strings.Contains(file, "/") {
+		err := os.MkdirAll(filepath.Dir(file), os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+	f, err := os.Create(file)
+	if err != nil {
+		return err
+	}
+	defer Close(f)
+	_, err = f.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }

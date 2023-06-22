@@ -6,7 +6,6 @@ import (
 	"burp/reader"
 	"burp/utils"
 	"bytes"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -73,20 +72,5 @@ func (env *Environment) Save(dir string) error {
 		return err
 	}
 	d := filepath.Join(dir, env.Output)
-	if strings.Contains(env.Output, "/") {
-		err = os.MkdirAll(filepath.Dir(d), os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-	f, err := os.Create(d)
-	if err != nil {
-		return err
-	}
-	defer reader.Close(f)
-	_, err = f.Write([]byte(*translation))
-	if err != nil {
-		return err
-	}
-	return nil
+	return reader.Save(d, []byte(*translation))
 }

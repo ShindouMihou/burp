@@ -9,8 +9,8 @@ import (
 	"burp/services"
 	"context"
 	"errors"
-	"github.com/BurntSushi/toml"
 	"github.com/joho/godotenv"
+	"github.com/pelletier/go-toml"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"
@@ -32,17 +32,16 @@ func main() {
 
 	tree, err := reader.Read("burp.toml")
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Str("file", "burp.toml").Msg("Failed Read")
 		return
 	}
 
 	var burp services.Burp
-	_, err = toml.Decode(tree.String(), &burp)
+	err = toml.Unmarshal(tree.Bytes(), &burp)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("Failed Unmarshal")
 		return
 	}
-
 	if err = docker.Init(); err != nil {
 		log.Err(err)
 		return
