@@ -155,7 +155,8 @@ non-hashed secret token, Burp will handle the rest afterward.
 - [x] Agent Client
   - [x] Authentication
   - [x] Deploying Applications
-  - [ ] Stopping Applications
+  - [x] Stopping Applications
+  - [x] Removing Applications
 - [ ] CLI
   - [ ] `burp hash`
   - [ ] `burp login`
