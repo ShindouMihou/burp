@@ -45,6 +45,16 @@ func Start(name string) error {
 	return nil
 }
 
+func Remove(name string) error {
+	if err := Client.ContainerRemove(context.TODO(), name, types.ContainerRemoveOptions{Force: true}); err != nil {
+		if errdefs.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
 func Deploy(channel *chan any, image string, environments []string, ctr *services.Container) (*string, error) {
 	name := "burp." + ctr.Name
 	logger := log.With().Str("name", ctr.Name).Logger()

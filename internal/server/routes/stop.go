@@ -4,62 +4,33 @@ import (
 	"burp/internal/burper"
 	"burp/internal/docker"
 	"burp/internal/server"
-	"burp/internal/server/mimes"
+	"burp/internal/server/requests"
 	"burp/internal/server/responses"
 	"burp/internal/services"
 	"burp/pkg/utils"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pelletier/go-toml/v2"
-	"github.com/rs/zerolog/log"
-	"io"
-	"net/http"
 )
 
 var _ = server.Add(func(app *gin.Engine) {
-	app.DELETE("/application", func(ctx *gin.Context) {
+	app.POST("/application/stop", func(ctx *gin.Context) {
 		logger := responses.Logger(ctx)
-		if ctx.ContentType() != "multipart/form-data" {
-			responses.InvalidPayload.Reply(ctx)
+		bytes, ok := requests.GetBurpFile(ctx)
+		if !ok {
 			return
 		}
-		file, err := ctx.FormFile("burp")
-		if err != nil {
-			if errors.Is(err, http.ErrMissingFile) {
-				responses.InvalidPayload.Reply(ctx)
-				return
-			}
-			responses.HandleErr(ctx, err)
-			return
-		}
-		contentType := file.Header.Get("Content-Type")
-		if contentType != mimes.TOML_MIMETYPE {
-			logger.Error().Str("Content-Type", contentType).Msg("Invalid Payload")
-			responses.InvalidPayload.Reply(ctx)
-			return
-		}
-		f, err := file.Open()
-		if err != nil {
-			responses.HandleErr(ctx, err)
-			return
-		}
-		bytes, err := io.ReadAll(f)
-		if err != nil {
-			responses.HandleErr(ctx, err)
-			return
-		}
-
-		logger.Info().Msg("Starting server-side stream...")
-		ctx.Writer.Header().Set("Content-Type", "text/event-stream")
-		ctx.Writer.Header().Set("Cache-Control", "no-cache")
-		ctx.Writer.Header().Set("Connection", "keep-alive")
-		ctx.Writer.Header().Set("Transfer-Encoding", "chunked")
+		logger.Info().Msg("Spawning a server-side stream...")
+		responses.AddSseHeaders(ctx)
 
 		channel := utils.Ptr(make(chan any, 10))
-
-		lock.TryLock()
 		go func() {
+			// IMPT: All deployments should be synchronous to  prevent an existential crisis
+			// that doesn't exist, but still to be safe.
+			responses.ChannelSend(channel, responses.CreateChannelOk("Waiting for deployment agent..."))
+			logger.Info().Msg("Waiting for deployment agent...")
+
+			lock.Lock()
 			defer lock.Unlock()
 			tree, err := burper.FromBytes(bytes)
 			if err != nil {
@@ -94,13 +65,6 @@ var _ = server.Add(func(app *gin.Engine) {
 			defer close(*channel)
 		}()
 
-		ctx.Stream(func(w io.Writer) bool {
-			if msg, ok := <-*channel; ok {
-				log.Info().Any("data", msg).Msg("Received stream message")
-				ctx.SSEvent("data", msg)
-				return true
-			}
-			return false
-		})
+		responses.Stream(ctx, channel)
 	})
 })

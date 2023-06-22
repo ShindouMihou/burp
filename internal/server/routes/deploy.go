@@ -19,7 +19,6 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"github.com/pelletier/go-toml"
-	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"os"
@@ -102,21 +101,18 @@ var _ = server.Add(func(app *gin.Engine) {
 			}
 		}
 		logger.Info().Msg("Starting server-side stream...")
-		ctx.Writer.Header().Set("Content-Type", "text/event-stream")
-		ctx.Writer.Header().Set("Cache-Control", "no-cache")
-		ctx.Writer.Header().Set("Connection", "keep-alive")
-		ctx.Writer.Header().Set("Transfer-Encoding", "chunked")
+		responses.AddSseHeaders(ctx)
 
 		channel := utils.Ptr(make(chan any, 10))
-
-		// IMPT: All deployments should be synchronous to  prevent an existential crisis
-		// that doesn't exist, but still to be safe.
-		responses.ChannelSend(channel, responses.CreateChannelOk("Waiting for deployment agent..."))
-		logger.Info().Msg("Waiting for deployment agent...")
-
-		lock.TryLock()
-
 		go func() {
+			defer close(*channel)
+
+			// IMPT: All deployments should be synchronous to  prevent an existential crisis
+			// that doesn't exist, but still to be safe.
+			responses.ChannelSend(channel, responses.CreateChannelOk("Waiting for deployment agent..."))
+			logger.Info().Msg("Waiting for deployment agent...")
+
+			lock.Lock()
 			defer lock.Unlock()
 
 			tree, err := burper.FromBytes(burp)
@@ -194,16 +190,13 @@ var _ = server.Add(func(app *gin.Engine) {
 			logger.Info().Msg("Starting build process...")
 			responses.ChannelSend(channel, responses.CreateChannelOk("Starting build process..."))
 			burpy.Deploy(channel, &burp)
-			defer close(*channel)
+			responses.ChannelSend(channel, responses.CreateChannelOk("Cleaning all stages..."))
+			if err := burpy.Clear(&burp); err != nil {
+				responses.ChannelSend(channel, responses.CreateChannelError("Failed to clean all stages", err.Error()))
+				return
+			}
 		}()
 
-		ctx.Stream(func(w io.Writer) bool {
-			if msg, ok := <-*channel; ok {
-				log.Info().Any("data", msg).Msg("Received stream message")
-				ctx.SSEvent("data", msg)
-				return true
-			}
-			return false
-		})
+		responses.Stream(ctx, channel)
 	})
 })
