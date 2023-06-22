@@ -25,6 +25,26 @@ func GetContainer(name string) (*types.ContainerJSON, error) {
 	return &con, nil
 }
 
+func Kill(name string) error {
+	if err := Client.ContainerKill(context.TODO(), name, "SIGKILL"); err != nil {
+		if errdefs.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func Start(name string) error {
+	if err := Client.ContainerStart(context.TODO(), name, types.ContainerStartOptions{}); err != nil {
+		if errdefs.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
 func Deploy(channel *chan any, image string, environments []string, ctr *services.Container) (*string, error) {
 	name := "burp." + ctr.Name
 	logger := log.With().Str("name", ctr.Name).Logger()

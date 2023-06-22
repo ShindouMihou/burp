@@ -52,6 +52,10 @@ var _ = server.Add(func(app *gin.Engine) {
 			return
 		}
 		files := form.File["package[]"]
+		if len(files) == 0 {
+			responses.InvalidPayload.Reply(ctx)
+			return
+		}
 		var burp []byte
 		var pkg *uploadedFile
 		for _, file := range files {
