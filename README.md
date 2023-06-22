@@ -88,19 +88,13 @@ REDIS_URI="redis://root:[burp: Use(redis_pass)]@172.17.0.1:6379"
 
 ##### Setting Up Burp
 
-To set up Burp, you need to have Burp Agent installed on your server, and the easiest way to do so is through 
-Docker:
-```shell
-docker pull shindoumihou/burp
-docker run --name burp-agent \ 
-  -e "BURP_SECRET=<secret token here>" \
-  -e "BURP_SIGNATURE=<secret signature here>" \ 
-  --restart=always -p 6653:6653 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /git.toml:/data/burp/git.toml \
-  -v /registries.toml:/data/burp/registries.toml \
-  shindoumihou/burp"
-```
+To set up Burp, you need to have Burp Agent installed on your server, and the easiest way to do so is to use Burp itself, 
+you can do this by clone the Burp repository and downloading the [Burp CLI](https://github.com/ShindouMihou/burp/releases) onto 
+your server, and following the steps:
+
+1. Creating a folder named `/data/burp` somewhere, Burp will copy all uploaded files that you'll include from deployment over to that folder.
+2. Rename the `.env.example` into a `burp.env` then configuring the file.
+3Running the following command: `burp deploy --here`
 
 There are two properties that Burp needs, and those are:
 - `BURP_SECRET`: Akin to a password, this is needed to authenticate people to the agent. You have to hash this with argon2id since
@@ -109,7 +103,8 @@ the server will only need the hash.
 to reduce resources as requests that do not contain this signature are ignored.
 
 You also need to create a `git.toml` and `registries.toml` if you want to access private repositories or pull images 
-from the Dockerhub more than 100 times a day.
+from the Dockerhub more than 100 times a day, please create them under the `data/` folder in the repository since 
+Burp will copy them over to the server.
 
 An example of a `git.toml` would be:
 ```toml
@@ -157,9 +152,9 @@ non-hashed secret token, Burp will handle the rest afterward.
   - [x] Building images
   - [x] Spawning services
   - [x] Killing services
-- [ ] Agent Client
-  - [ ] Authentication
-  - [ ] Deploying Applications
+- [x] Agent Client
+  - [x] Authentication
+  - [x] Deploying Applications
   - [ ] Stopping Applications
 - [ ] CLI
   - [ ] `burp hash`

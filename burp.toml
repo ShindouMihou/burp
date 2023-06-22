@@ -1,46 +1,40 @@
 #--------------------
 # Burp.toml
 #
-# This current file serves as a demonstration file of a proper Burp.toml file.
-# The file is what Primrose (https://github.com/ShindouMihou/primrose) would use
-# when it becomes Burp-compatiable.
-#
-# Proven and tested via testing.
+# This is the official Burp.toml for the Burp deployment tool. You can reference this
+# to see how a Burp.toml would appear.
 #---------------------
 version = 1.0
 
+#------------
+# NOTE: When using `bind` with files that only exist on the client-side
+# e.g. private configuration files, make sure to use the `.burpy/home/` parent
+# folder since Burp drops all the files from `includes` to that directory.
+#
+# It is recommended to link that directory with burp using
+# { type = "bind", source = "path/to/host/folder", target = ".burpy/home/` }
+#--------------
 includes = [
-    { source = "data/git.toml", target = "data/get.toml" },
+    { source = "data/git.toml", target = "data/git.toml" },
     { source = "data/docker.toml", target = "data/docker.toml" },
 ]
 
 [service]
-name = "primrose_core"
-build = "core/"
-repository = "https://github.com/ShindouMihou/primrose"
+name = "burp"
+build = "/"
+repository = "https://github.com/ShindouMihou/burp"
 restart_policy = { name = "always" }
-
-[[dependencies]]
-name = "mongo"
-image = "mongo"
-ports = [["2732","27017"]]
-restart_policy = { name = "always" }
-networks = ["mongo"]
 volumes = [
-    { type = "volume", source = "primrose_data", target = "/data/db" }
+    { type = "bind", source = "/data/burp/", target = ".burpy/home/"},
+    { type = "bind", source = "/var/run/docker.sock", target = "/var/run/docker.sock" }
 ]
+ports = [["8873","8873"]]
 
-[dependencies.environment]
-MONGO_INITDB_ROOT_USERNAME="root"
-MONGO_INITDB_ROOT_PASSWORD="[burp: Random(256) AS mongo.password]"
-
+#-------------------------------
+# Burp will use the `burp.env` file as its base for the final `.env` output.
+# To configure burp, remember to rename the `.env.example` into `burp.env` and
+# configure from there.
+#-------------------------------
 [environment]
-file = "core/.env.example"
-output = "core/.env"
-
-[environment.replacements]
-MONGO_URI="mongodb://root:[burp: Use(mongo.password)]@172.17.0.1:2732"
-SIGNING_KEY="[burp: Random(256)]"
-
-[[volumes]]
-name="mongo"
+file = "burp.env"
+output = ".env"

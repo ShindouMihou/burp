@@ -21,6 +21,10 @@ func Init() {
 	gin.SetMode(gin.ReleaseMode)
 	go func() {
 		app := gin.New()
+		// IMPRT: Limit file uploads to 5 MiB since the file upload mechanism
+		// of Burp is intended for additional configuration files, not massive
+		// dangerous binaries.
+		app.MaxMultipartMemory = 5 << 20
 		app.Use(logger.SetLogger(), middlewares.Authenticated)
 		for _, executioner := range Executioners {
 			executioner(app)

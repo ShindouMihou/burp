@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	responses "burp/internal/server/responses"
+	"burp/internal/server/responses"
 	"burp/pkg/env"
 	"burp/pkg/utils"
 	"github.com/alexedwards/argon2id"

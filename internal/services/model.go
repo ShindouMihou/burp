@@ -50,8 +50,9 @@ type Environment struct {
 }
 
 type Include struct {
-	Source string `toml:"source" json:"source"`
-	Target string `toml:"target" json:"target"`
+	Source   string `toml:"source" json:"source"`
+	Target   string `toml:"target" json:"target"`
+	Required bool   `toml:"required,omitempty" json:"required"`
 }
 
 type HashedInclude struct {

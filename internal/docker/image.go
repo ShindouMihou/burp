@@ -3,6 +3,7 @@ package docker
 import (
 	"bufio"
 	"burp/internal/auth"
+	"burp/internal/server/responses"
 	"burp/pkg/utils"
 	"context"
 	"encoding/base64"
@@ -38,14 +39,15 @@ func HasImage(name string) (bool, error) {
 	return false, nil
 }
 
-func Pull(image string) error {
+func Pull(channel *chan any, image string) error {
 	image = strings.ToLower(image)
-	logger := log.With().Str("pull", image).Logger()
+	logger := log.With().Str("image", image).Logger()
 	ref, err := reference.ParseNamed(image)
 	if err != nil {
 		return err
 	}
 	domain := reference.Domain(ref)
+	responses.ChannelSend(channel, responses.CreateChannelOk("Pulling image "+image+" from "+domain))
 	logger.Info().Str("domain", domain).Msg("Pulling Image")
 
 	var registryAuth string
@@ -70,10 +72,10 @@ func Pull(image string) error {
 			logger.Err(err).Str("origin", "pull").Msg("Failed to close body")
 		}
 	}(response)
-	return Handle(logger, bufio.NewScanner(response))
+	return Handle(channel, logger, bufio.NewScanner(response))
 }
 
-func Build(dir string, name string) error {
+func Build(channel *chan any, dir string, name string) error {
 	logger := log.With().Str("build", name).Logger()
 
 	tar, err := archive.TarWithOptions(dir, &archive.TarOptions{})
@@ -92,9 +94,9 @@ func Build(dir string, name string) error {
 			logger.Err(err).Str("origin", "build").Msg("Failed to close body")
 		}
 	}(build.Body)
-	if err = Handle(logger, bufio.NewScanner(build.Body)); err != nil {
+	if err = Handle(channel, logger, bufio.NewScanner(build.Body)); err != nil {
 		return err
 	}
-	logger.Info().Msg("Created Image")
+	responses.ChannelSend(channel, responses.CreateChannelOk("Successfully created the image."))
 	return nil
 }

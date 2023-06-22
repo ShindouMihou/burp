@@ -3,7 +3,7 @@ package env
 import "os"
 
 const (
-	AgentMode          Key = "DEBUG"
+	AgentMode          Key = "AGENT_MODE"
 	BurpSignature      Key = "BURP_SIGNATURE"
 	BurpSecret         Key = "BURP_SECRET"
 	GitToml            Key = "GIT_TOML"

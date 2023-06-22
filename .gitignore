@@ -1,4 +1,5 @@
 .idea/
 .env
+burp.env
 .certs/
 .burp/

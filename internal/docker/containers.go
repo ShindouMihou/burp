@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"burp/internal/server/responses"
 	"burp/internal/services"
 	"context"
 	"fmt"
@@ -24,7 +25,7 @@ func GetContainer(name string) (*types.ContainerJSON, error) {
 	return &con, nil
 }
 
-func Deploy(image string, environments []string, ctr *services.Container) (*string, error) {
+func Deploy(channel *chan any, image string, environments []string, ctr *services.Container) (*string, error) {
 	name := "burp." + ctr.Name
 	logger := log.With().Str("name", ctr.Name).Logger()
 	liveContainer, err := GetContainer(name)
@@ -33,6 +34,7 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 	}
 	if liveContainer != nil {
 		logger.Warn().Str("id", liveContainer.ID).Msg("Removing Container")
+		responses.ChannelSend(channel, responses.CreateChannelOk("Removing container with the id "+liveContainer.ID+" for container "+name))
 		err = Client.ContainerRemove(context.TODO(), liveContainer.ID, types.ContainerRemoveOptions{
 			Force: true,
 		})
@@ -54,6 +56,7 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 			logger := logger.With().Str("volume", mnt.Source).Logger()
 			logger.Warn().Msg("Cannot find the volume specified")
 			logger.Info().Msg("Creating volume")
+			responses.ChannelSend(channel, responses.CreateChannelOk("Cannot find any volume named "+mnt.Source+", creating volume..."))
 			_, err = Client.VolumeCreate(context.TODO(), volume.CreateOptions{Name: mnt.Source})
 			if err != nil {
 				return nil, err
@@ -73,6 +76,7 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 			logger := logger.With().Str("network", net).Logger()
 			logger.Warn().Msg("Cannot find the network specified")
 			logger.Info().Msg("Creating network")
+			responses.ChannelSend(channel, responses.CreateChannelOk("Cannot find any network named "+net+", creating network..."))
 			_, err := Client.NetworkCreate(context.TODO(), net, types.NetworkCreate{
 				CheckDuplicate: true,
 			})
@@ -95,7 +99,8 @@ func Deploy(image string, environments []string, ctr *services.Container) (*stri
 		logger := logger.With().Str("image", image).Logger()
 		logger.Warn().Msg("Cannot find the image specified")
 		logger.Info().Msg("Pulling image")
-		if err = Pull("mongo"); err != nil {
+		responses.ChannelSend(channel, responses.CreateChannelOk("Cannot find any image named "+image+", pulling image..."))
+		if err = Pull(channel, "mongo"); err != nil {
 			return nil, err
 		}
 	}

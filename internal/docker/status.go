@@ -2,6 +2,7 @@ package docker
 
 import (
 	"bufio"
+	"burp/internal/server/responses"
 	"encoding/json"
 	"errors"
 	"github.com/rs/zerolog"
@@ -20,27 +21,28 @@ type Aux struct {
 }
 
 type Progressing struct {
-	Status         *string `json:"status"`
-	ProgressDetail *string `json:"progressDetail"`
-	Progress       *string `json:"progress"`
-	Id             *string `json:"id"`
+	Status         *string `json:"status,omitempty"`
+	ProgressDetail *string `json:"progressDetail,omitempty"`
+	Progress       *string `json:"progress,omitempty"`
+	Id             *string `json:"id,omitempty"`
 }
 
 type ErrorLine struct {
-	Error       *string      `json:"error"`
-	ErrorDetail *ErrorDetail `json:"errorDetail"`
+	Error       *string      `json:"error,omitempty"`
+	ErrorDetail *ErrorDetail `json:"errorDetail,omitempty"`
 }
 
 type ErrorDetail struct {
 	Message string `json:"message"`
 }
 
-func Handle(log zerolog.Logger, scanner *bufio.Scanner) error {
+func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error {
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		var stream StreamResponse
 		if err := json.Unmarshal(line, &stream); err != nil {
 			log.Err(err).Str("line", string(line)).Msg("Failed Unmarshal")
+			responses.ChannelSend(channel, responses.CreateChannelError("Failed to unmarshal status", err.Error()))
 			continue
 		}
 		if stream.Stream != nil {
@@ -54,6 +56,7 @@ func Handle(log zerolog.Logger, scanner *bufio.Scanner) error {
 				if strings.HasPrefix(str, "\u001b[0m") {
 					continue
 				}
+				responses.ChannelSend(channel, responses.CreateChannelOk(str))
 				log.Print(str)
 			}
 		}
@@ -68,6 +71,7 @@ func Handle(log zerolog.Logger, scanner *bufio.Scanner) error {
 				if strings.HasPrefix(str, "\u001b[0m") {
 					continue
 				}
+				responses.ChannelSend(channel, responses.CreateChannelOk(str))
 				log.Print(str)
 			}
 			if stream.ProgressDetail != nil {
@@ -75,6 +79,7 @@ func Handle(log zerolog.Logger, scanner *bufio.Scanner) error {
 			}
 		}
 		if stream.Error != nil {
+			responses.ChannelSend(channel, responses.CreateChannelError("An error occurred", *stream.Error))
 			return errors.New(*stream.Error)
 		}
 	}
