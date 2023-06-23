@@ -18,7 +18,7 @@ var Start = templates.CreateServerRequestCommand(
 	"start",
 	"Starts an application's stack on a remote server.",
 	func(secrets *api.Secrets, request *resty.Request) (*resty.Response, error) {
-		return request.Post(secrets.Link("application", "stratrt"))
+		return request.Post(secrets.Link("application", "start"))
 	},
 )
 
