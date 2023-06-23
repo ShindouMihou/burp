@@ -1,8 +1,8 @@
 package burpy
 
 import (
+	"burp/cmd/burp-agent/server/responses"
 	"burp/internal/docker"
-	"burp/internal/server/responses"
 	"burp/internal/services"
 	"burp/pkg/fileutils"
 	"context"

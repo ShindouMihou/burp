@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"burp/internal/commands/logins"
+	"burp/cmd/burp/commands/logins"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
 	"fmt"

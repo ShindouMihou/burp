@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"burp/internal/server"
+	"burp/cmd/burp-agent/server"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

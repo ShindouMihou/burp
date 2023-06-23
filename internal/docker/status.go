@@ -2,7 +2,7 @@ package docker
 
 import (
 	"bufio"
-	"burp/internal/server/responses"
+	"burp/cmd/burp-agent/server/responses"
 	"encoding/json"
 	"errors"
 	"github.com/rs/zerolog"

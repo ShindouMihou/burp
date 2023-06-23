@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"burp/internal/api"
+	api2 "burp/cmd/burp/api"
+	"burp/cmd/burp/commands/logins"
 	"burp/internal/burpy"
-	"burp/internal/commands/logins"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
 	"bytes"
@@ -28,7 +28,7 @@ var Deploy = &cli.Command{
 		if !ok {
 			return nil
 		}
-		burp, tree := api.GetBurper(answers.Directory)
+		burp, tree := api2.GetBurper(answers.Directory)
 		if burp == nil || tree == nil {
 			return nil
 		}
@@ -58,7 +58,7 @@ var Deploy = &cli.Command{
 			request = request.SetMultipartField("package[]", fileName, "application/gzip", pkg)
 		}
 
-		api.Streamed(request.Put(secrets.Link("application")))
+		api2.Streamed(request.Put(secrets.Link("application")))
 		return nil
 	},
 }

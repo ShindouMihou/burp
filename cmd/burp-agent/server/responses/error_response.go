@@ -20,6 +20,5 @@ func (errorResponse *ErrorResponse) Reply(ctx *gin.Context) {
 
 var InvalidPayload = ErrorResponse{Code: http.StatusBadRequest, Error: "Invalid payload."}
 var VagueError = ErrorResponse{Code: http.StatusBadRequest, Error: "An error occurred while trying to execute this task."}
-var AuthenticationRequired = ErrorResponse{Code: http.StatusForbidden, Error: "You cannot perform this task, or access this resource."}
 var Unauthorized = ErrorResponse{Code: http.StatusUnauthorized, Error: "You do not have the privilege to perform this task or access this resource."}
 var NotFound = ErrorResponse{Code: http.StatusNotFound, Error: "We cannot find any resource that matches."}

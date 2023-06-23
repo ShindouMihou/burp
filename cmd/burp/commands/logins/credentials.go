@@ -1,7 +1,7 @@
 package logins
 
 import (
-	"burp/internal/api"
+	"burp/cmd/burp/api"
 	"encoding/json"
 	"fmt"
 	"github.com/portainer/libcrypto"

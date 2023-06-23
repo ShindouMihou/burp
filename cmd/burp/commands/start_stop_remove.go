@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"burp/internal/api"
+	"burp/cmd/burp/api"
 	"github.com/go-resty/resty/v2"
 )
 

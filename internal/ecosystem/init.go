@@ -1,9 +1,9 @@
 package ecosystem
 
 import (
+	"burp/cmd/burp-agent/server/routes"
 	"burp/internal/auth"
 	"burp/internal/burper/functions"
-	"burp/internal/server/routes"
 	"burp/pkg/env"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"

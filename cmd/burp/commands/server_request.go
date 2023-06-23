@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"burp/internal/api"
-	"burp/internal/commands/logins"
+	api2 "burp/cmd/burp/api"
+	"burp/cmd/burp/commands/logins"
 	"burp/pkg/console"
 	"bytes"
 	"github.com/AlecAivazis/survey/v2"
@@ -37,11 +37,11 @@ var ServerRequestQuestions = []*survey.Question{
 }
 
 type ServerRequestSurvey struct {
-	api.Keys
+	api2.Keys
 	Directory string `json:"directory"`
 }
 
-type ServerRequestAction = func(secrets *api.Secrets, request *resty.Request) (*resty.Response, error)
+type ServerRequestAction = func(secrets *api2.Secrets, request *resty.Request) (*resty.Response, error)
 
 func CreateServerRequestCommand(name string, description string, action ServerRequestAction) *cli.Command {
 	return &cli.Command{
@@ -58,7 +58,7 @@ func CreateServerRequestCommand(name string, description string, action ServerRe
 			if !ok {
 				return nil
 			}
-			burp, tree := api.GetBurper(answers.Directory)
+			burp, tree := api2.GetBurper(answers.Directory)
 			if burp == nil || tree == nil {
 				return nil
 			}
@@ -67,7 +67,7 @@ func CreateServerRequestCommand(name string, description string, action ServerRe
 				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
 				SetDoNotParseResponse(true)
 
-			api.Streamed(action(secrets, request))
+			api2.Streamed(action(secrets, request))
 			return nil
 		},
 	}

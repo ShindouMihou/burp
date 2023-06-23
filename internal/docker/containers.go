@@ -1,7 +1,7 @@
 package docker
 
 import (
-	"burp/internal/server/responses"
+	"burp/cmd/burp-agent/server/responses"
 	"burp/internal/services"
 	"context"
 	"fmt"
@@ -10,49 +10,31 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/errdefs"
 	"github.com/rs/zerolog/log"
 )
 
 func GetContainer(name string) (*types.ContainerJSON, error) {
-	con, err := Client.ContainerInspect(context.TODO(), "/"+name)
-	if err != nil {
-		if errdefs.IsNotFound(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &con, nil
+	return returningTask(func() (types.ContainerJSON, error) {
+		return Client.ContainerInspect(context.TODO(), "/"+name)
+	})
 }
 
 func Kill(name string) error {
-	if err := Client.ContainerKill(context.TODO(), name, "SIGKILL"); err != nil {
-		if errdefs.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	return nil
+	return nonReturningTask(func() error {
+		return Client.ContainerKill(context.TODO(), name, "SIGKILL")
+	})
 }
 
 func Start(name string) error {
-	if err := Client.ContainerStart(context.TODO(), name, types.ContainerStartOptions{}); err != nil {
-		if errdefs.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	return nil
+	return nonReturningTask(func() error {
+		return Client.ContainerStart(context.TODO(), name, types.ContainerStartOptions{})
+	})
 }
 
 func Remove(name string) error {
-	if err := Client.ContainerRemove(context.TODO(), name, types.ContainerRemoveOptions{Force: true}); err != nil {
-		if errdefs.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	return nil
+	return nonReturningTask(func() error {
+		return Client.ContainerRemove(context.TODO(), name, types.ContainerRemoveOptions{Force: true})
+	})
 }
 
 func Deploy(channel *chan any, image string, environments []string, ctr *services.Container) (*string, error) {

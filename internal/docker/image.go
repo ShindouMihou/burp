@@ -2,8 +2,8 @@ package docker
 
 import (
 	"bufio"
+	"burp/cmd/burp-agent/server/responses"
 	"burp/internal/auth"
-	"burp/internal/server/responses"
 	"burp/pkg/utils"
 	"context"
 	"encoding/base64"

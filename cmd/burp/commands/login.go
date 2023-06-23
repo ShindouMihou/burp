@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"burp/internal/api"
-	"burp/internal/commands/logins"
+	"burp/cmd/burp/api"
+	"burp/cmd/burp/commands/logins"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
 	"burp/pkg/utils"

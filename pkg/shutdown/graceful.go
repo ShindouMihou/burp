@@ -10,16 +10,15 @@ import (
 	"time"
 )
 
-type ShutdownTask = func(ctx context.Context) error
+type Task = func(ctx context.Context) error
 
-func Shutdown(ctx context.Context, timeout time.Duration, operations map[string]ShutdownTask) <-chan struct{} {
+func Shutdown(ctx context.Context, timeout time.Duration, operations map[string]Task) <-chan struct{} {
 	wait := make(chan struct{})
 	go func() {
 		s := make(chan os.Signal, 1)
 		signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 		<-s
 
-		log.Info().Msg("Preparing to shutdown burp-agent...")
 		out := time.AfterFunc(timeout, func() {
 			log.Error().Msg("Graceful shutdown couldn't be completed even after timeout, forcing...")
 		})
@@ -36,7 +35,6 @@ func Shutdown(ctx context.Context, timeout time.Duration, operations map[string]
 					log.Err(err).Str("task", key).Msg("Failed to complete shutdown task")
 					return
 				}
-				log.Info().Str("task", key).Msg("Shutdown task was completed successfully.")
 			}()
 		}
 		wg.Wait()

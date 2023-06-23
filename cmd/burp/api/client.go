@@ -2,7 +2,7 @@ package api
 
 import (
 	"bufio"
-	"burp/internal/server/responses"
+	"burp/cmd/burp-agent/server/responses"
 	"burp/pkg/fileutils"
 	"burp/pkg/utils"
 	"bytes"

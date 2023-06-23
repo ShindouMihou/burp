@@ -1,7 +1,8 @@
 package server
 
 import (
-	"burp/internal/server/middlewares"
+	"burp/cmd/burp-agent/server/middlewares"
+	"burp/cmd/burp-agent/server/responses"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -29,6 +30,7 @@ func Init() {
 		for _, executioner := range Executioners {
 			executioner(app)
 		}
+		app.NoRoute(func(ctx *gin.Context) { responses.NotFound.Reply(ctx) })
 		if err := app.RunTLS(":8873", cert, key); err != nil {
 			log.Panic().Err(err).Msg("Cannot Start Gin")
 			return
