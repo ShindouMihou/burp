@@ -2,10 +2,11 @@ package commands
 
 import (
 	"burp/cmd/burp/api"
+	"burp/cmd/burp/commands/templates"
 	"github.com/go-resty/resty/v2"
 )
 
-var Stop = CreateServerRequestCommand(
+var Stop = templates.CreateServerRequestCommand(
 	"stop",
 	"Stops an application's stack on a remote server.",
 	func(secrets *api.Secrets, request *resty.Request) (*resty.Response, error) {
@@ -13,7 +14,7 @@ var Stop = CreateServerRequestCommand(
 	},
 )
 
-var Start = CreateServerRequestCommand(
+var Start = templates.CreateServerRequestCommand(
 	"start",
 	"Starts an application's stack on a remote server.",
 	func(secrets *api.Secrets, request *resty.Request) (*resty.Response, error) {
@@ -21,7 +22,7 @@ var Start = CreateServerRequestCommand(
 	},
 )
 
-var Remove = CreateServerRequestCommand(
+var Remove = templates.CreateServerRequestCommand(
 	"remove",
 	"Removes an application's stack on a remote server.",
 	func(secrets *api.Secrets, request *resty.Request) (*resty.Response, error) {

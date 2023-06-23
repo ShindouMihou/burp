@@ -1,8 +1,9 @@
 package commands
 
 import (
-	api2 "burp/cmd/burp/api"
+	api "burp/cmd/burp/api"
 	"burp/cmd/burp/commands/logins"
+	"burp/cmd/burp/commands/templates"
 	"burp/internal/burpy"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
@@ -18,8 +19,8 @@ var Deploy = &cli.Command{
 	Name:        "deploy",
 	Description: "Deploys an application to a remote server.",
 	Action: func(ctx *cli.Context) error {
-		var answers ServerRequestSurvey
-		if err := survey.Ask(ServerRequestQuestions, &answers); err != nil {
+		var answers templates.ServerRequestSurvey
+		if err := survey.Ask(templates.ServerRequestQuestions, &answers); err != nil {
 			return err
 		}
 		console.Clear()
@@ -28,7 +29,7 @@ var Deploy = &cli.Command{
 		if !ok {
 			return nil
 		}
-		burp, tree := api2.GetBurper(answers.Directory)
+		burp, tree := api.GetBurper(answers.Directory)
 		if burp == nil || tree == nil {
 			return nil
 		}
@@ -58,7 +59,7 @@ var Deploy = &cli.Command{
 			request = request.SetMultipartField("package[]", fileName, "application/gzip", pkg)
 		}
 
-		api2.Streamed(request.Put(secrets.Link("application")))
+		api.Streamed(request.Put(secrets.Link("application")))
 		return nil
 	},
 }

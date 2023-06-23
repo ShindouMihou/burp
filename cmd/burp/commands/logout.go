@@ -2,6 +2,7 @@ package commands
 
 import (
 	"burp/cmd/burp/commands/logins"
+	"burp/cmd/burp/commands/prompt"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 
 var logoutConfirmation = []*survey.Question{
 	{
-		Name: "confirmation",
+		Name: "confirmed",
 		Prompt: &survey.Confirm{
 			Message: "Are you sure you want to delete this server? This is an irreversible action!",
 			Default: false,
@@ -32,12 +33,12 @@ var Logout = &cli.Command{
 			fmt.Println(chalk.Red, "૮₍˃⤙˂₎ა", chalk.Reset, "You need to supply the ", console.Highlight, "server name", chalk.Reset, "to log out from!")
 			return nil
 		}
-		var confirmation Confirmation
+		var confirmation prompt.Confirmation
 		if err := survey.Ask(logoutConfirmation, &confirmation); err != nil {
 			return err
 		}
 		console.Clear()
-		if !confirmation.Confirmation {
+		if !confirmation.Confirmed {
 			return nil
 		}
 		name = fileutils.Sanitize(name)
