@@ -166,6 +166,4 @@ non-hashed secret token, Burp will handle the rest afterward.
   - [x] `burp deploy`
   - [x] `burp stop`
   - [x] `burp restart`
-  - [ ] `burp here` 
-  - [ ] `burp registry`
-  - [ ] `burp git`
+  - [x] `burp here`
