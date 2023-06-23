@@ -30,7 +30,6 @@ func Package(burp *services.Burp) error {
 			}
 			return err
 		}
-		log.Info().Str("file", name).Str("hash", *hash).Msg("Copied File")
 		include.Source = filepath.Join("pkg", filepath.Base(include.Target))
 		hashes = append(hashes, services.HashedInclude{Include: include, Hash: *hash})
 	}
@@ -42,7 +41,6 @@ func Package(burp *services.Burp) error {
 	if err != nil {
 		return err
 	}
-	log.Info().Str("file", "hashes.json").Msg("Saved File")
 	tarName := fmt.Sprint(burp.Service.Name, "_includes.tar.gz")
 	tarName = filepath.Join(TemporaryFilesFolder, ".packaged", tarName)
 	err = fileutils.Tar(dir, tarName)

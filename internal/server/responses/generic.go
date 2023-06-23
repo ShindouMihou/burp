@@ -33,8 +33,5 @@ func CreateChannelOk(data any) *GenericResponse {
 func ChannelSend(channel *chan any, data any) {
 	if channel != nil {
 		*channel <- data
-		if _, ok := data.(*ErrorResponse); ok {
-			close(*channel)
-		}
 	}
 }

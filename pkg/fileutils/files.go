@@ -95,3 +95,10 @@ func Tar(src, dest string) error {
 	}
 	return nil
 }
+
+func Sanitize(key string) string {
+	key = filepath.Clean(filepath.Base(key))
+	key = strings.ToLower(key)
+	key = strings.ReplaceAll(key, " ", "_")
+	return key
+}

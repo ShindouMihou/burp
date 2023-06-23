@@ -28,7 +28,7 @@ volumes = [
     { type = "bind", source = "/data/burp/", target = ".burpy/home/"},
     { type = "bind", source = "/var/run/docker.sock", target = "/var/run/docker.sock" }
 ]
-ports = [["8873","8873"]]
+ports = [["8837","8873"]]
 
 #-------------------------------
 # Burp will use the `burp.env` file as its base for the final `.env` output.

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"burp/internal/app"
 	"burp/internal/docker"
+	"burp/internal/ecosystem"
 	"burp/internal/server"
 	"burp/pkg/shutdown"
 	"context"
@@ -15,7 +15,7 @@ import (
 type ShutdownTask = func(ctx context.Context) error
 
 func main() {
-	app.Init()
+	ecosystem.Init()
 	if err := docker.Init(); err != nil {
 		log.Panic().Err(err).Msg("Cannot connect to Docker")
 	}

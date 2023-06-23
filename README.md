@@ -157,8 +157,11 @@ non-hashed secret token, Burp will handle the rest afterward.
   - [x] Deploying Applications
   - [x] Stopping Applications
   - [x] Removing Applications
-- [ ] CLI
-  - [ ] `burp hash`
-  - [ ] `burp login`
-  - [ ] `burp deploy`
-  - [ ] `burp stop`
+- [x] CLI
+  - [x] `burp hash`
+  - [x] `burp login`
+  - [x] `burp logout`
+  - [x] `burp start`
+  - [x] `burp remove`
+  - [x] `burp deploy`
+  - [x] `burp stop`

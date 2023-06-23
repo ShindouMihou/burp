@@ -1,4 +1,4 @@
-package app
+package ecosystem
 
 import (
 	"burp/internal/auth"
