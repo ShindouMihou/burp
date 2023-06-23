@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"burp/internal/burper"
 	"burp/internal/burpy"
 	"burp/internal/server"
 	"burp/internal/server/mimes"
@@ -55,7 +54,7 @@ var _ = server.Add(func(app *gin.Engine) {
 			responses.InvalidPayload.Reply(ctx)
 			return
 		}
-		var burp []byte
+		var configBytes []byte
 		var pkg *uploadedFile
 		for _, file := range files {
 			file := file
@@ -97,7 +96,7 @@ var _ = server.Add(func(app *gin.Engine) {
 				pkg = utils.Ptr(uploadedFile{Name: fileName, Contents: bytes})
 			}
 			if contentType == mimes.TOML_MIMETYPE {
-				burp = bytes
+				configBytes = bytes
 			}
 		}
 		logger.Info().Msg("Starting server-side stream...")
@@ -115,16 +114,9 @@ var _ = server.Add(func(app *gin.Engine) {
 			lock.Lock()
 			defer lock.Unlock()
 
-			tree, err := burper.FromBytes(burp)
-			if err != nil {
-				logger.Info().Err(err).Msg("Failed to parse TOML file into Burp tree")
-				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp tree", err.Error()))
-				return
-			}
-
 			var burp services.Burp
-			if err = toml.Unmarshal(tree.Bytes(), &burp); err != nil {
-				logger.Info().Err(err).Msg("Failed to parse TOML file into Burp services")
+			if err = toml.Unmarshal(configBytes, &burp); err != nil {
+				logger.Err(err).Msg("Failed to parse TOML file into Burp services")
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp services", err.Error()))
 				return
 			}
@@ -142,7 +134,7 @@ var _ = server.Add(func(app *gin.Engine) {
 					responses.ChannelSend(channel, responses.CreateChannelError("Failed to create temporary files folder", err.Error()))
 					return
 				}
-				buffer := bytes.NewBuffer(pkg.Contents)
+				buffer := bytes.NewReader(pkg.Contents)
 				if err = extract.Archive(context.TODO(), buffer, dir, nil); err != nil {
 					responses.ChannelSend(channel, responses.CreateChannelError("Failed to unpack uploaded package", err.Error()))
 					return

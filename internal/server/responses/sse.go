@@ -2,7 +2,6 @@ package responses
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	"io"
 )
 
@@ -16,7 +15,7 @@ func AddSseHeaders(ctx *gin.Context) {
 func Stream(ctx *gin.Context, channel *chan any) {
 	ctx.Stream(func(w io.Writer) bool {
 		if msg, ok := <-*channel; ok {
-			log.Info().Any("data", msg).Msg("Received stream message")
+			Logger(ctx).Info().Any("data", msg).Msg("Sent stream message")
 			ctx.SSEvent("data", msg)
 			return true
 		}

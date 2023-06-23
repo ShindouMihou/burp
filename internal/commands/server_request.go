@@ -64,7 +64,7 @@ func CreateServerRequestCommand(name string, description string, action ServerRe
 			}
 			request := secrets.Client().
 				EnableTrace().
-				SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewBuffer(tree.Bytes())).
+				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
 				SetDoNotParseResponse(true)
 
 			api.Streamed(action(secrets, request))

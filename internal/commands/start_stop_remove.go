@@ -25,6 +25,6 @@ var Remove = CreateServerRequestCommand(
 	"remove",
 	"Removes an application's stack on a remote server.",
 	func(secrets *api.Secrets, request *resty.Request) (*resty.Response, error) {
-		return request.Delete(secrets.Link("application", "remove"))
+		return request.Post(secrets.Link("application", "remove"))
 	},
 )

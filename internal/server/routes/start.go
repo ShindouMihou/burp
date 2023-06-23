@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"burp/internal/burper"
 	"burp/internal/docker"
 	"burp/internal/server"
 	"burp/internal/server/requests"
@@ -32,15 +31,8 @@ var _ = server.Add(func(app *gin.Engine) {
 
 			lock.Lock()
 			defer lock.Unlock()
-			tree, err := burper.FromBytes(bytes)
-			if err != nil {
-				logger.Info().Err(err).Msg("Failed to parse TOML file into Burp tree")
-				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp tree", err.Error()))
-				return
-			}
-
 			var burp services.Burp
-			if err = toml.Unmarshal(tree.Bytes(), &burp); err != nil {
+			if err := toml.Unmarshal(bytes, &burp); err != nil {
 				logger.Info().Err(err).Msg("Failed to parse TOML file into Burp services")
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp services", err.Error()))
 				return
@@ -48,7 +40,7 @@ var _ = server.Add(func(app *gin.Engine) {
 
 			for _, dependency := range burp.Dependencies {
 				responses.ChannelSend(channel, responses.CreateChannelOk("Starting dependency container (burp."+dependency.Name+")...."))
-				if err = docker.Start(fmt.Sprint("burp.", dependency.Name)); err != nil {
+				if err := docker.Start(fmt.Sprint("burp.", dependency.Name)); err != nil {
 					logger.Info().Err(err).Str("name", dependency.Name).Msg("Failed to start dependency container")
 					responses.ChannelSend(channel, responses.CreateChannelError("Failed to start dependency container (burp."+dependency.Name+")", err.Error()))
 					return
@@ -57,7 +49,7 @@ var _ = server.Add(func(app *gin.Engine) {
 			}
 
 			responses.ChannelSend(channel, responses.CreateChannelOk("Starting main service container (burp."+burp.Service.Name+")...."))
-			if err = docker.Start(fmt.Sprint("burp.", burp.Service.Name)); err != nil {
+			if err := docker.Start(fmt.Sprint("burp.", burp.Service.Name)); err != nil {
 				logger.Info().Err(err).Str("name", burp.Service.Name).Msg("Failed to start main service container")
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to start main service container (burp."+burp.Service.Name+")", err.Error()))
 				return

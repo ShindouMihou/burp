@@ -34,7 +34,7 @@ var Deploy = &cli.Command{
 		}
 		request := secrets.Client().
 			EnableTrace().
-			SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewBuffer(tree.Bytes())).
+			SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
 			SetDoNotParseResponse(true)
 
 		if len(burp.Includes) > 0 {
