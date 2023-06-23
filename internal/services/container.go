@@ -78,8 +78,9 @@ func (ctr *Container) GetVolumes() ([]mount.Mount, error) {
 		if !utils.AnyMatchStringCaseInsensitive(SupportedVolumeTypes, volume.Type) {
 			return nil, ErrUnsupportedVolumeType
 		}
+		volume.Type = strings.ToLower(volume.Type)
 		mounts = append(mounts, mount.Mount{
-			Type:     mount.Type(strings.ToLower(volume.Type)),
+			Type:     mount.Type(volume.Type),
 			Source:   volume.Source,
 			Target:   volume.Target,
 			ReadOnly: volume.ReadOnly,
