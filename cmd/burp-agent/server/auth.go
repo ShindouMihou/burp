@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// EnsureAuthentication ensures that we have a BurpSignature and a BurpSecret to protect our application.
+// If it cannot find one and if we are in debug mode, then it generates one and logs them into console, otherwise,
+// it will panic.
 func EnsureAuthentication() {
 	if env.BurpSecret.OrNull() == nil || env.BurpSignature.OrNull() == nil {
 		if strings.EqualFold(env.AgentMode.Or("release"), "debug") {

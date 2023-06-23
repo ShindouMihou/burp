@@ -47,7 +47,7 @@ func Pull(channel *chan any, image string) error {
 		return err
 	}
 	domain := reference.Domain(ref)
-	responses.ChannelSend(channel, responses.CreateChannelOk("Pulling image "+image+" from "+domain))
+	responses.ChannelSend(channel, responses.Create("Pulling image "+image+" from "+domain))
 	logger.Info().Str("domain", domain).Msg("Pulling Image")
 
 	var registryAuth string
@@ -97,6 +97,6 @@ func Build(channel *chan any, dir string, name string) error {
 	if err = Handle(channel, logger, bufio.NewScanner(build.Body)); err != nil {
 		return err
 	}
-	responses.ChannelSend(channel, responses.CreateChannelOk("Successfully created the image."))
+	responses.ChannelSend(channel, responses.Create("Successfully created the image."))
 	return nil
 }

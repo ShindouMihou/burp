@@ -13,6 +13,9 @@ import (
 
 var TemporarySslDirectory = ".certs"
 
+// GetSsl checks whether there are SSL certificates that can be acquired
+// and if none, then generates its own self-signed certificates. This is to ensure that
+// we are always using the HTTPS protocol which encrypts the requests.
 func GetSsl() (cert string, key string, err error) {
 	if env.SslCertificatePath.OrNull() != nil && env.SslKeyPath.OrNull() != nil {
 		return env.SslCertificatePath.Get(), env.SslKeyPath.Get(), nil

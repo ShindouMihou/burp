@@ -56,7 +56,7 @@ func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error
 				if strings.HasPrefix(str, "\u001b[0m") {
 					continue
 				}
-				responses.ChannelSend(channel, responses.CreateChannelOk(str))
+				responses.ChannelSend(channel, responses.Create(str))
 				log.Print(str)
 			}
 		}
@@ -71,7 +71,7 @@ func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error
 				if strings.HasPrefix(str, "\u001b[0m") {
 					continue
 				}
-				responses.ChannelSend(channel, responses.CreateChannelOk(str))
+				responses.ChannelSend(channel, responses.Create(str))
 				log.Print(str)
 			}
 			if stream.ProgressDetail != nil {

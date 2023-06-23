@@ -102,7 +102,7 @@ func Deploy(channel *chan any, burp *services.Burp) {
 			responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn dependency container "+dependency.Name, err.Error()))
 			return
 		}
-		responses.ChannelSend(channel, responses.CreateChannelOk("Spawned container "+dependency.Name+" with id "+*id))
+		responses.ChannelSend(channel, responses.Create("Spawned container "+dependency.Name+" with id "+*id))
 		log.Info().Str("name", dependency.Name).Str("id", *id).Msg("Spawning Container")
 		spawn = append(spawn, *id)
 	}
@@ -113,7 +113,7 @@ func Deploy(channel *chan any, burp *services.Burp) {
 		return
 	}
 	spawn = append(spawn, *id)
-	responses.ChannelSend(channel, responses.CreateChannelOk("Spawned container "+burp.Service.Name+" with id "+*id))
+	responses.ChannelSend(channel, responses.Create("Spawned container "+burp.Service.Name+" with id "+*id))
 	log.Info().Str("name", burp.Service.Name).Str("id", *id).Msg("Spawned Container")
 	for _, id := range spawn {
 		err := docker.Client.ContainerStart(context.TODO(), id, types.ContainerStartOptions{})
@@ -122,7 +122,7 @@ func Deploy(channel *chan any, burp *services.Burp) {
 			log.Err(err).Str("id", id).Msg("Starting Container")
 			return
 		}
-		responses.ChannelSend(channel, responses.CreateChannelOk("started container with id "+id))
+		responses.ChannelSend(channel, responses.Create("started container with id "+id))
 		log.Info().Str("id", id).Msg("Started Container")
 	}
 }

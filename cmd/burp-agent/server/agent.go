@@ -8,10 +8,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Executioner are tasks that are executed during Init which can modify the state of the Gin engine.
+// You should use this when you want to add a new route, a group of routes, middlewares and other
+// related that modifies the Gin state.
 type Executioner = func(app *gin.Engine)
 
 var Executioners []Executioner
 
+// Init initializes all that is needed to start the burp-agent application, this involves checking the authentication
+// properties, checking the TLS (SSL) certificates and running the Executioners which adds the routes, and other
+// middlewares.
 func Init() {
 	EnsureAuthentication()
 	cert, key, err := GetSsl()
@@ -42,6 +48,9 @@ func Init() {
 		Msg("Gin is now running")
 }
 
+// Add is a utility method that adds an Executioner to the Executioners stack, this returns a boolean
+// that is always true, the return value is intended to allow us to call it using an empty variable name
+// without much overhead.
 func Add(executioner Executioner) bool {
 	Executioners = append(Executioners, executioner)
 	return true
