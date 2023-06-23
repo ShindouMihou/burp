@@ -4,24 +4,19 @@ import (
 	commands2 "burp/cmd/burp/commands"
 	"burp/cmd/burp/commands/logins"
 	"burp/internal/ecosystem"
+	"burp/pkg/fileutils"
 	"burp/pkg/shutdown"
 	"context"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/rs/zerolog/log"
 	"os"
-	"path/filepath"
 	"time"
 )
 
 func main() {
 	ecosystem.Init()
 	if logins.Folder == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Panic().Err(err).Msg("An error occurred.")
-			return
-		}
-		logins.Folder = filepath.Join(home, ".burpy", "servers")
+		logins.Folder = fileutils.JoinHomePath(".burpy", "servers")
 	}
 	if err := commands2.App.Run(os.Args); err != nil {
 		if err == terminal.InterruptErr {

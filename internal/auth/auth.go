@@ -51,12 +51,12 @@ func Add(file string, store map[string]Authentication) error {
 }
 
 func Load() {
-	err := Add(env.GitToml.Or(".burpy/home/git.toml"), Git)
+	err := Add(env.GitToml.Or(fileutils.JoinHomePath(".burpy", ".secrets", "git.toml")), Git)
 	if err != nil {
 		log.Err(err)
 		return
 	}
-	err = Add(env.DockerToml.Or(".burpy/home/docker.toml"), Docker)
+	err = Add(env.DockerToml.Or(fileutils.JoinHomePath(".burpy", ".secrets", "docker.toml")), Docker)
 	if err != nil {
 		log.Err(err)
 		return

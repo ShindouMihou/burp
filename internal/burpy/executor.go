@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 )
 
-var TemporaryFilesFolder = filepath.Join(".burp", ".temp", ".files")
+var TemporaryFilesFolder = fileutils.JoinHomePath(".burpy", ".build", ".files")
 
 func Package(burp *services.Burp) error {
 	var hashes []services.HashedInclude

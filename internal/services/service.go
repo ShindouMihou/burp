@@ -2,6 +2,7 @@ package services
 
 import (
 	"burp/internal/auth"
+	"burp/pkg/fileutils"
 	"burp/pkg/utils"
 	"fmt"
 	"github.com/go-git/go-git/v5"
@@ -14,7 +15,7 @@ import (
 	"strings"
 )
 
-var TemporaryCloneFolder = filepath.Join(".burp", ".temp", "repos")
+var TemporaryCloneFolder = fileutils.JoinHomePath(".burpy", ".build", ".repos")
 
 func (service *Service) Clone() (*string, error) {
 	addr, err := giturl.NewGitURL(service.Repository)

@@ -102,3 +102,16 @@ func Sanitize(key string) string {
 	key = strings.ReplaceAll(key, " ", "_")
 	return key
 }
+
+var homeDirectory = ""
+
+func JoinHomePath(paths ...string) string {
+	if homeDirectory == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Panic().Err(err).Msg("Failed to get home directory path")
+		}
+		homeDirectory = home
+	}
+	return filepath.Join(homeDirectory, filepath.Join(paths...))
+}
