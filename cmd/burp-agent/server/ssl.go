@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var TemporarySslDirectory = ".certs"
+var TemporarySslDirectory = fileutils.JoinHomePath(".burpy", ".certs")
 
 // GetSsl checks whether there are SSL certificates that can be acquired
 // and if none, then generates its own self-signed certificates. This is to ensure that

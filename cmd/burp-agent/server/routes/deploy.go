@@ -163,7 +163,7 @@ var _ = server.Add(func(app *gin.Engine) {
 						return
 					}
 					target := filepath.Clean(include.Target)
-					target = filepath.Join(".burpy", "home", target)
+					target = filepath.Join(burpy.UnpackedFilesFolder, target)
 
 					responses.ChannelSend(channel, responses.Create("File "+include.Source+" passed checksum, copying to "+target))
 					if _, err = fileutils.Copy(file, target); err != nil {

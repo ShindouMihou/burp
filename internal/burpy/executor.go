@@ -16,6 +16,7 @@ import (
 )
 
 var TemporaryFilesFolder = fileutils.JoinHomePath(".burpy", ".build", ".files")
+var UnpackedFilesFolder = fileutils.JoinHomePath(".burpy", "home")
 
 func Package(burp *services.Burp) error {
 	var hashes []services.HashedInclude
@@ -58,6 +59,7 @@ func Package(burp *services.Burp) error {
 func Clear(burp *services.Burp) error {
 	paths := []string{
 		filepath.Join(TemporaryFilesFolder, ".packaged", fmt.Sprint(burp.Service.Name, "_includes.tar.gz")),
+		filepath.Join(TemporaryFilesFolder, burp.Service.Name),
 		filepath.Join(services.TemporaryCloneFolder, burp.Service.Name),
 	}
 	for _, path := range paths {
