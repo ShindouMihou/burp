@@ -13,7 +13,7 @@ func Parse(line []byte) ([]Call, error) {
 		call, err := extractComponents(&match)
 		if err != nil {
 			// Likely that it's not a burp call.
-			if err == MalformedBurpCall {
+			if err == ErrMalformedBurpCall {
 				continue
 			}
 			return nil, err
@@ -60,11 +60,11 @@ func findMatches(line []byte) []Origin {
 
 func extractComponents(origin *Origin) (*Call, error) {
 	if !utils.HasPrefix(origin.Match, COMPLETE_PREFIX_KEY) {
-		return nil, MalformedBurpCall
+		return nil, ErrMalformedBurpCall
 	}
 	parts := bytes.SplitN(origin.Match, SEPERATOR_KEY, 2)
 	if len(parts) != 2 {
-		return nil, MalformedBurpCall
+		return nil, ErrMalformedBurpCall
 	}
 	burp := Call{Source: origin}
 	call := bytes.TrimSpace(parts[1:][0])

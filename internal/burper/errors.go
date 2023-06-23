@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var MalformedBurpCall = errors.New("malformed call to burp")
+var ErrMalformedBurpCall = errors.New("malformed call to burp")
 
 func mergeArgumentType(args [][]string) []string {
 	return utils.Map(args, func(v []string) string {

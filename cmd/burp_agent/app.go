@@ -25,7 +25,6 @@ func main() {
 			return Cleanup()
 		},
 	})
-	return
 }
 
 func Cleanup() error {

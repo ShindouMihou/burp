@@ -1,7 +1,7 @@
 package services
 
 import (
-	utils "burp/pkg/utils"
+	"burp/pkg/utils"
 	"errors"
 	"github.com/c2h5oh/datasize"
 	"github.com/docker/docker/api/types/container"
@@ -69,14 +69,14 @@ func (ctr *Container) GetPorts() (nat.PortSet, nat.PortMap) {
 }
 
 var SupportedVolumeTypes = []string{"volume", "bind"}
-var UnsupportedVolumeType = errors.New("container has invalid volume type, must be either: volume or bind")
+var ErrUnsupportedVolumeType = errors.New("container has invalid volume type, must be either: volume or bind")
 
 func (ctr *Container) GetVolumes() ([]mount.Mount, error) {
 	var mounts []mount.Mount
 	for _, volume := range ctr.Volumes {
 		volume := volume
 		if !utils.AnyMatchStringCaseInsensitive(SupportedVolumeTypes, volume.Type) {
-			return nil, UnsupportedVolumeType
+			return nil, ErrUnsupportedVolumeType
 		}
 		mounts = append(mounts, mount.Mount{
 			Type:     mount.Type(strings.ToLower(volume.Type)),
