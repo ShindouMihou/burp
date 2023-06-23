@@ -22,13 +22,13 @@ repository = "github.com/ShindouMihou/burp" # Burp will clone and pull the sourc
 And the application should now be Burp-compatiable. You can then deploy the application by running the 
 command:
 ```shell
-burp deploy --server [server_name]
+burp deploy
 ```
 
 To kill  all the containers that Burp spawned for the project, all you have to do is run the 
 following command:
 ```shell
-burp stop --server [server_name]
+burp stop
 ```
 
 #### Dependencies
@@ -94,7 +94,7 @@ your server, and following the steps:
 
 1. Creating a folder named `/data/burp` somewhere, Burp will copy all uploaded files that you'll include from deployment over to that folder.
 2. Rename the `.env.example` into a `burp.env` then configuring the file.
-3Running the following command: `burp deploy --here`
+3. Running the following command: `burp here`
 
 There are two properties that Burp needs, and those are:
 - `BURP_SECRET`: Akin to a password, this is needed to authenticate people to the agent. You have to hash this with argon2id since
@@ -102,8 +102,8 @@ the server will only need the hash.
 - `BURP_SIGNATURE`: Akin to a username, this is used as an initial check over whether the request should be hash-checked. This is 
 to reduce resources as requests that do not contain this signature are ignored.
 
-You also need to create a `git.toml` and `registries.toml` if you want to access private repositories or pull images 
-from the Dockerhub more than 100 times a day, please create them under the `data/` folder in the repository since 
+You also need to create a `git.toml` and `docker.toml` if you want to access private repositories or pull images 
+from the Dockerhub more than 100 times a day, please create them under the `~/.burpy/.secrets/` folder in the repository since 
 Burp will copy them over to the server.
 
 An example of a `git.toml` would be:
@@ -165,3 +165,7 @@ non-hashed secret token, Burp will handle the rest afterward.
   - [x] `burp remove`
   - [x] `burp deploy`
   - [x] `burp stop`
+  - [x] `burp restart`
+  - [ ] `burp here` 
+  - [ ] `burp registry`
+  - [ ] `burp git`
