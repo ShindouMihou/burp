@@ -40,8 +40,8 @@ var ServerRequestQuestions = []*survey.Question{
 	{
 		Name: "encryption",
 		Prompt: &survey.Password{
-			Message: "Enter an encryption key for this server. (16 characters minimum)",
-			Help:    "This will be used to encrypt the credentials of the server.",
+			Message: "Enter the encryption key for this server. (16 characters minimum)",
+			Help:    "This will be used to decrypt the credentials of the server.",
 		},
 		Validate: survey.MinLength(16),
 	},

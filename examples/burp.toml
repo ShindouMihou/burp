@@ -10,13 +10,13 @@
 version = 1.0
 
 [service]
-name = "primrose_core"
+name = "primrose-backend"
 build = "core/"
 repository = "https://github.com/ShindouMihou/primrose"
 restart_policy = { name = "always" }
 
 [[dependencies]]
-name = "mongo"
+name = "primrose-mongo"
 image = "mongo"
 ports = [["2732","27017"]]
 restart_policy = { name = "always" }
