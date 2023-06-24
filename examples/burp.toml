@@ -29,6 +29,14 @@ volumes = [
 MONGO_INITDB_ROOT_USERNAME="root"
 MONGO_INITDB_ROOT_PASSWORD="[burp: Random(256) AS mongo.password]"
 
+#--------------------------
+# In this example, we have enabled server-side translations for .env file.
+# And it's primarily because, we are generating our own credentials using the `environment.replacements`
+# of Burp which enables us to create our own credentials safely, even allowing argon2id hashes.
+#
+# But in most cases, unless you don't need to know the secrets, you should most likely use the
+# client-side translations.
+#-------------------------
 [environment]
 baseline = "core/.env.example"
 override = false
