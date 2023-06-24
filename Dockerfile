@@ -1,14 +1,15 @@
-FROM golang:1.20
+FROM golang:1.20-alpine AS build
 
 WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
-RUN addgroup -S -g 8873 burp && adduser -S -D -H -u 8873 -s /sbin/nologin -G burp burp
-USER burp:burp
-
 COPY . .
 RUN go build -v -o /usr/local/bin cmd/burp-agent/app.go
+
+FROM golang:1.20-alpine
+
+COPY --from=build /usr/local/bin /usr/local/bin
 
 EXPOSE 8873
 CMD ["app"]
