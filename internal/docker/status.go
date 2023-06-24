@@ -21,10 +21,9 @@ type Aux struct {
 }
 
 type Progressing struct {
-	Status         *string `json:"status,omitempty"`
-	ProgressDetail *string `json:"progressDetail,omitempty"`
-	Progress       *string `json:"progress,omitempty"`
-	Id             *string `json:"id,omitempty"`
+	Status   *string `json:"status,omitempty"`
+	Progress *string `json:"progress,omitempty"`
+	Id       *string `json:"id,omitempty"`
 }
 
 type ErrorLine struct {
@@ -42,7 +41,7 @@ func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error
 		var stream StreamResponse
 		if err := json.Unmarshal(line, &stream); err != nil {
 			log.Err(err).Str("line", string(line)).Msg("Failed Unmarshal")
-			responses.ChannelSend(channel, responses.CreateChannelError("Failed to unmarshal status", err.Error()))
+			responses.Error(channel, "Failed to unmarshal status", err)
 			continue
 		}
 		if stream.Stream != nil {
@@ -56,27 +55,38 @@ func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error
 				if strings.HasPrefix(str, "\u001b[0m") {
 					continue
 				}
-				responses.ChannelSend(channel, responses.Create(str))
+				responses.Message(channel, str)
 				log.Print(str)
 			}
 		}
 		if stream.Status != nil {
-			streams := strings.Split(*stream.Status, "\n")
-			for _, str := range streams {
-				str := strings.ReplaceAll(str, "\n", "")
-				str = strings.TrimSpace(str)
-				if len(str) == 0 {
-					continue
+			if strings.Contains(*stream.Stream, "\n") {
+				streams := strings.Split(*stream.Status, "\n")
+				for _, str := range streams {
+					str := strings.ReplaceAll(str, "\n", "")
+					str = strings.TrimSpace(str)
+					if len(str) == 0 {
+						continue
+					}
+					if strings.HasPrefix(str, "\u001b[0m") {
+						continue
+					}
+					responses.Message(channel, str)
+					log.Print(str)
 				}
-				if strings.HasPrefix(str, "\u001b[0m") {
-					continue
+				if stream.Progress != nil {
+					log.Print(" ", *stream.Progress)
 				}
-				responses.ChannelSend(channel, responses.Create(str))
-				log.Print(str)
+			} else {
+				log.Print(*stream.Stream)
+				if stream.Progress != nil {
+					log.Print(" ", *stream.Progress)
+					responses.Message(channel, *stream.Stream, " ", *stream.Progress)
+				} else {
+					responses.Message(channel, *stream.Stream)
+				}
 			}
-			if stream.ProgressDetail != nil {
-				log.Print(" ", *stream.ProgressDetail)
-			}
+
 		}
 		if stream.Error != nil {
 			responses.ChannelSend(channel, responses.CreateChannelError("An error occurred", *stream.Error))
