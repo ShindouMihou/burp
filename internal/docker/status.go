@@ -78,12 +78,12 @@ func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error
 					log.Print(" ", *stream.Progress)
 				}
 			} else {
-				log.Print(*stream.Stream)
+				log.Print(*stream.Status)
 				if stream.Progress != nil {
 					log.Print(" ", *stream.Progress)
-					responses.Message(channel, *stream.Stream, " ", *stream.Progress)
+					responses.Message(channel, *stream.Status, " ", *stream.Progress)
 				} else {
-					responses.Message(channel, *stream.Stream)
+					responses.Message(channel, *stream.Status)
 				}
 			}
 
