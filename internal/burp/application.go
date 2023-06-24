@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
+	"github.com/pelletier/go-toml"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
@@ -18,6 +20,19 @@ import (
 var TemporaryFilesFolder = fileutils.JoinHomePath(".burpy", ".build", ".files")
 var UnpackedFilesFolder = fileutils.JoinHomePath(".burpy", "home")
 
+// From is a method generally used in streaming routes, it decodes the Toml file and checks if there is any error.
+// If there is an error, it sends to the logger and to the stream.
+func (application *Application) From(bits []byte, logger *zerolog.Logger, channel *chan any) bool {
+	if err := toml.Unmarshal(bits, application); err != nil {
+		logger.Err(err).Msg("Failed to parse TOML file into Burp services")
+		responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp services", err.Error()))
+		return false
+	}
+	return true
+}
+
+// Package packages all the files that was declared to be transported to the server-side.
+// This should be run only in the client-side (CLI).
 func (application *Application) Package() error {
 	var hashes []HashedInclude
 	dir := filepath.Join(TemporaryFilesFolder, application.Service.Name)
@@ -70,6 +85,8 @@ func (application *Application) CleanRemnants() error {
 	return nil
 }
 
+// Deploy deploys the application, this builds the main service's image and spawns a container for it
+// before spawning the dependency containers (pulling when needed) and then starting all the containers.
 func (application *Application) Deploy(channel *chan any, environments []string) {
 	dir, err := application.Service.Clone()
 	if err != nil {

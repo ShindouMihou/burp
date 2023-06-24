@@ -14,7 +14,7 @@ import (
 
 func GetBurper(directory string) (*burp.Application, *burper.Flow) {
 	if !utils.HasSuffixStr(directory, ".toml") {
-		directory = filepath.Join(directory, "application.toml")
+		directory = filepath.Join(directory, "burp.toml")
 	}
 	flow, err := burper.FromFile(directory)
 	if err != nil {

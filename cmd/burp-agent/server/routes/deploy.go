@@ -17,7 +17,6 @@ import (
 	"github.com/codeclysm/extract/v3"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
-	"github.com/pelletier/go-toml"
 	"io"
 	"net/http"
 	"os"
@@ -103,17 +102,11 @@ var _ = server.Add(func(app *gin.Engine) {
 		channel := utils.Ptr(make(chan any, 10))
 		go func() {
 			defer close(*channel)
-
-			responses.ChannelSend(channel, responses.Create("Waiting for deployment agent..."))
-			logger.Info().Msg("Waiting for deployment agent...")
-
-			limiter.GlobalAgentLock.Lock()
+			limiter.Await(channel, logger)
 			defer limiter.GlobalAgentLock.Unlock()
 
 			var application burp.Application
-			if err = toml.Unmarshal(configBytes, &application); err != nil {
-				logger.Err(err).Msg("Failed to parse TOML file into Burp services")
-				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp services", err.Error()))
+			if ok := application.From(configBytes, logger, channel); !ok {
 				return
 			}
 

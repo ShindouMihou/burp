@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/go-connections/nat"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"math"
 	"strconv"
@@ -132,6 +133,29 @@ func (ctr *Container) GetRestartPolicy() container.RestartPolicy {
 	return policy
 }
 
+func (ctr *Container) exec(channel *chan any, logger *zerolog.Logger, contexts []string, task func(name string) error) bool {
+	responses.Message(channel, contexts[0], " container (burp.", ctr.Name, ")....")
+	if err := task("burp." + ctr.Name); err != nil {
+		logger.Info().Err(err).Str("name", ctr.Name).Msg("Failed to " + contexts[1] + " container")
+		responses.Error(channel, "Failed to "+contexts[1]+" container (burp."+ctr.Name+")", err)
+		return false
+	}
+	responses.Message(channel, contexts[2], " container (burp.", ctr.Name, ")")
+	return true
+}
+
+func (ctr *Container) Start(channel *chan any, logger *zerolog.Logger) bool {
+	return ctr.exec(channel, logger, []string{"Starting", "start", "Started"}, docker.Start)
+}
+
+func (ctr *Container) Remove(channel *chan any, logger *zerolog.Logger) bool {
+	return ctr.exec(channel, logger, []string{"Removing", "remove", "Removed"}, docker.Remove)
+}
+
+func (ctr *Container) Stop(channel *chan any, logger *zerolog.Logger) bool {
+	return ctr.exec(channel, logger, []string{"Stopping", "stop", "Stopped"}, docker.Kill)
+}
+
 func (ctr *Container) Deploy(channel *chan any, image string, environments []string) (*string, error) {
 	name := "burp." + ctr.Name
 	logger := log.With().Str("name", ctr.Name).Logger()
@@ -142,10 +166,7 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 	if liveContainer != nil {
 		logger.Warn().Str("id", liveContainer.ID).Msg("Removing Container")
 		responses.ChannelSend(channel, responses.Create("Removing container with the id "+liveContainer.ID+" for container "+name))
-		err = docker.Client.ContainerRemove(context.TODO(), liveContainer.ID, types.ContainerRemoveOptions{
-			Force: true,
-		})
-		if err != nil {
+		if err = docker.Remove(liveContainer.ID); err != nil {
 			return nil, err
 		}
 	}
