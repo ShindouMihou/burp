@@ -13,6 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 var TemporaryFilesFolder = fileutils.JoinHomePath(".burpy", ".build", ".files")
@@ -70,29 +71,28 @@ func Clear(burp *services.Burp) error {
 	return nil
 }
 
-func Deploy(channel *chan any, burp *services.Burp) {
+func Deploy(channel *chan any, burp *services.Burp, environments []string) {
 	dir, err := burp.Service.Clone()
 	if err != nil {
 		log.Err(err).Msg("Cloning Service")
 		responses.ChannelSend(channel, responses.CreateChannelError("Failed to clone repository", err.Error()))
 		return
 	}
-	err = burp.Environment.Save(*dir)
-	if err != nil {
-		log.Err(err).Msg("Saving Environment File")
-		responses.ChannelSend(channel, responses.CreateChannelError("Failed to save environment file", err.Error()))
-		return
+	if burp.Environment.ServerSide {
+		environments, err = burp.Environment.Read(*dir)
+		if err != nil {
+			log.Err(err).Str("dir", *dir).Msg("Reading Environment")
+			responses.ChannelSend(channel, responses.CreateChannelError("Failed to read environment properties", err.Error()))
+			return
+		}
+	} else {
+		log.Info().Int("len", len(environments)).Msg("Using environment variables from client.")
+		responses.ChannelSend(channel, responses.Create("Using environment variables from client with length of "+strconv.FormatInt(int64(len(environments)), 10)))
 	}
 	log.Info().Str("dir", *dir).Msg("Build Path")
 	if err := docker.Build(channel, filepath.Join(*dir, burp.Service.Build), burp.Service.Name); err != nil {
 		log.Err(err).Msg("Building Image")
 		responses.ChannelSend(channel, responses.CreateChannelError("Failed to save build image", err.Error()))
-		return
-	}
-	environments, err := burp.Environment.Read(*dir)
-	if err != nil {
-		log.Err(err).Str("dir", *dir).Msg("Reading Environment")
-		responses.ChannelSend(channel, responses.CreateChannelError("Failed to read environment properties", err.Error()))
 		return
 	}
 	var spawn []string

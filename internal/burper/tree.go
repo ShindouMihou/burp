@@ -42,7 +42,9 @@ func New(reader io.Reader) (*Tree, error) {
 	tree := &Tree{Store: make(map[string][]byte)}
 	buf := bufio.NewScanner(reader)
 	for buf.Scan() {
-		line := buf.Bytes()
+		line := make([]byte, len(buf.Bytes()))
+		copy(line, buf.Bytes())
+
 		calls, err := Parse(line)
 		if err != nil {
 			return nil, err
@@ -54,6 +56,9 @@ func New(reader io.Reader) (*Tree, error) {
 			}
 		}
 		tree.Result = append(tree.Result, line)
+	}
+	if buf.Err() != nil {
+		return nil, buf.Err()
 	}
 	return tree, nil
 }

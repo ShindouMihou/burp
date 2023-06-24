@@ -15,7 +15,7 @@ func main() {
 	if err := docker.Init(); err != nil {
 		log.Panic().Err(err).Msg("Cannot connect to Docker")
 	}
-	server.Init()
+	server.Init(8873)
 	<-shutdown.Shutdown(context.Background(), 5*time.Second, map[string]shutdown.Task{
 		"cleanup_burp": func(ctx context.Context) error {
 			return shutdown.Cleanup()

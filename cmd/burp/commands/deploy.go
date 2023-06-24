@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"burp/cmd/burp-agent/server/mimes"
 	api "burp/cmd/burp/api"
 	"burp/cmd/burp/commands/logins"
 	"burp/cmd/burp/commands/templates"
@@ -35,10 +36,17 @@ var Deploy = &cli.Command{
 		if burp == nil || tree == nil {
 			return nil
 		}
+		environmentFile, ok := api.GetEnvironmentFile(burp)
+		if !ok {
+			return nil
+		}
 		request := secrets.Client().
 			EnableTrace().
 			SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
 			SetDoNotParseResponse(true)
+		if ok && environmentFile != nil {
+			request = request.SetMultipartField("package[]", ".env", mimes.TEXT_MIMETYPE, bytes.NewReader(*environmentFile))
+		}
 		if ok := Package(burp, request); !ok {
 			return nil
 		}

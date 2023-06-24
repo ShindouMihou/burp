@@ -14,6 +14,11 @@ version = 1.0
 # It is recommended to link that directory with burp using
 # { type = "bind", source = "path/to/host/folder", target = ".burpy/home/` }
 #--------------
+#
+# Unlike the volumes, this `includes` is actually the development environment.
+# So, it will transfer files from the development environment to the server.
+#
+#-------------
 includes = [
     { source = "data/git.toml", target = "data/git.toml" },
     { source = "data/docker.toml", target = "data/docker.toml" },
@@ -25,16 +30,43 @@ build = "/"
 repository = "https://github.com/ShindouMihou/burp"
 restart_policy = { name = "always" }
 volumes = [
-    { type = "bind", source = "/data/burp/", target = ".burpy/home/"},
+    #-----------------------------
+    # Burp has special variables when it comes to type = "bind" that are used to help you
+    # bind to things, here are the list of them (all of them needs to be in capital):
+    #
+    # $HOME: translates to the home directory of the server.
+    #
+    # These variables sadly only apply to the "source" since Burp's scope is limited to the
+    # host server, and not the containers' inside working.
+    #-----------------------------
+    { type = "bind", source = "$HOME/.burpy/", target = "/home/burp/.burpy/home/"},
     { type = "bind", source = "/var/run/docker.sock", target = "/var/run/docker.sock" }
 ]
-ports = [["8837","8873"]]
+ports = [["8873","8873"]]
 
-#-------------------------------
-# Burp will use the `burp.env` file as its base for the final `.env` output.
-# To configure burp, remember to rename the `.env.example` into `burp.env` and
-# configure from there.
-#-------------------------------
+#------------------------
+# Environment Files
+#
+# Burp have support for transporting environment files from the developer's environment (or the deployer's)
+# down to the agent, and also has support for utilizing Burp functions to replace key variables  before
+# transporting them.
+#
+# It reads from a "baseline" file (it can be a `.env.example`, or a `.env` file that contains secrets that
+# you've configured), checks this file for any replacements that are needed before transporting it along
+# to the server without performing any overrides.
+#
+# If you want Burp to override the baseline file, you can set the `override` option to true.
+# For how to use replacements, you can view the `examples/` folder (https://github.com/ShindouMihou/burp/tree/master/examples/).
+#
+# If you don't want the developer environment to perform the necessary changes for environment, but rather
+# let the server-side handle it (which means that the .env file in the CLI's working directory is ignored), then you can
+# set the `server-side` option to "true".
+#
+# Do note that when `server-side` is "true" then the server will use the clone repository's location as its working directory.
+# So, the baseline file would be something like `.burpy/.build/github.com/shindoumihou/burp/.env` (Burp handles it automatically)
+# but just a side note.
+#------------------------
 [environment]
-file = "burp.env"
-output = ".env"
+baseline = ".env"
+override = false
+server-side = false

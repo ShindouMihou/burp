@@ -105,7 +105,7 @@ func Sanitize(key string) string {
 
 var homeDirectory = ""
 
-func JoinHomePath(paths ...string) string {
+func GetHomeDir() string {
 	if homeDirectory == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -113,5 +113,9 @@ func JoinHomePath(paths ...string) string {
 		}
 		homeDirectory = home
 	}
-	return filepath.Join(homeDirectory, filepath.Join(paths...))
+	return homeDirectory
+}
+
+func JoinHomePath(paths ...string) string {
+	return filepath.Join(GetHomeDir(), filepath.Join(paths...))
 }

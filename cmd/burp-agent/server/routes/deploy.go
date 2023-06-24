@@ -50,6 +50,7 @@ var _ = server.Add(func(app *gin.Engine) {
 			return
 		}
 		var configBytes []byte
+		var environments []string
 		var pkg *uploadedFile
 		for _, file := range files {
 			file := file
@@ -65,33 +66,36 @@ var _ = server.Add(func(app *gin.Engine) {
 				responses.HandleErr(ctx, err)
 				return
 			}
-			bytes, err := io.ReadAll(f)
+			bits, err := io.ReadAll(f)
 			if err != nil {
 				responses.HandleErr(ctx, err)
 				return
 			}
+			fileName := filepath.Base(file.Filename)
 			// IMPT: Always double-check the tar filetype since it could be disguised before we unarchive it.
 			// We can skip TOML.
 			//
 			// Also, the correct Content-Type is GZIP, but the actual file is a TAR, which is why
 			// we have two different mimetypes in this check.
 			if contentType == mimes.GZIP_MIMETYPE {
-				fileName := filepath.Base(file.Filename)
 				if !utils.HasSuffixStr(fileName, ".tar.gz") {
 					logger.Error().Str("file", fileName).Msg("Invalid Payload")
 					responses.InvalidPayload.Reply(ctx)
 					return
 				}
-				mime := mimetype.Detect(bytes)
+				mime := mimetype.Detect(bits)
 				if !mime.Is(mimes.TAR_MIMETYPE) {
 					logger.Error().Str("Mime", mime.String()).Msg("Invalid Payload")
 					responses.InvalidPayload.Reply(ctx)
 					return
 				}
-				pkg = utils.Ptr(uploadedFile{Name: fileName, Contents: bytes})
+				pkg = utils.Ptr(uploadedFile{Name: fileName, Contents: bits})
 			}
 			if contentType == mimes.TOML_MIMETYPE {
-				configBytes = bytes
+				configBytes = bits
+			}
+			if contentType == mimes.TEXT_MIMETYPE && fileName == ".env" {
+				environments = services.EnvironmentReadBuffer(bytes.NewReader(bits))
 			}
 		}
 		logger.Info().Msg("Spawning server-side stream...")
@@ -174,7 +178,7 @@ var _ = server.Add(func(app *gin.Engine) {
 			}
 			logger.Info().Msg("Starting build process...")
 			responses.ChannelSend(channel, responses.Create("Starting build process..."))
-			burpy.Deploy(channel, &burp)
+			burpy.Deploy(channel, &burp, environments)
 			responses.ChannelSend(channel, responses.Create("Cleaning all stages..."))
 			if err := burpy.Clear(&burp); err != nil {
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to clean all stages", err.Error()))
@@ -189,6 +193,7 @@ var _ = server.Add(func(app *gin.Engine) {
 var AcceptedFileMimetypes = []string{
 	mimes.GZIP_MIMETYPE,
 	mimes.TOML_MIMETYPE,
+	mimes.TEXT_MIMETYPE,
 }
 
 type uploadedFile struct {

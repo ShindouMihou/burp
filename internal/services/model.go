@@ -44,9 +44,10 @@ type Burp struct {
 }
 
 type Environment struct {
-	File         string            `toml:"file" json:"file"`
-	Output       string            `toml:"output" json:"output"`
+	Baseline     string            `toml:"baseline" json:"baseline"`
+	Override     bool              `toml:"override" json:"override"`
 	Replacements map[string]string `toml:"replacements" json:"replacements"`
+	ServerSide   bool              `toml:"server-side" json:"server-side"`
 }
 
 type Include struct {

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"burp/pkg/fileutils"
 	"burp/pkg/utils"
 	"errors"
 	"github.com/c2h5oh/datasize"
@@ -79,6 +80,14 @@ func (ctr *Container) GetVolumes() ([]mount.Mount, error) {
 			return nil, ErrUnsupportedVolumeType
 		}
 		volume.Type = strings.ToLower(volume.Type)
+		if volume.Type == "bind" {
+			translations := map[string]string{
+				"$HOME": fileutils.GetHomeDir(),
+			}
+			for key, value := range translations {
+				volume.Source = strings.ReplaceAll(volume.Source, key, value)
+			}
+		}
 		mounts = append(mounts, mount.Mount{
 			Type:     mount.Type(volume.Type),
 			Source:   volume.Source,

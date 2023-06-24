@@ -9,19 +9,6 @@
 #---------------------
 version = 1.0
 
-#------------
-# NOTE: When using `bind` with files that only exist on the client-side
-# e.g. private configuration files, make sure to use the `.burpy/home/` parent
-# folder since Burp drops all the files from `includes` to that directory.
-#
-# It is recommended to link that directory with burp using
-# { type = "bind", source = "path/to/host/folder", target = ".burpy/home/` }
-#--------------
-includes = [
-    { source = "data/git.toml", target = "data/get.toml", required = false },
-    { source = "data/docker.toml", target = "data/docker.toml", required = false },
-]
-
 [service]
 name = "primrose_core"
 build = "core/"
@@ -43,8 +30,9 @@ MONGO_INITDB_ROOT_USERNAME="root"
 MONGO_INITDB_ROOT_PASSWORD="[burp: Random(256) AS mongo.password]"
 
 [environment]
-file = "core/.env.example"
-output = "core/.env"
+baseline = "core/.env.example"
+override = false
+server-side = true
 
 [environment.replacements]
 MONGO_URI="mongodb://root:[burp: Use(mongo.password)]@172.17.0.1:2732"

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"burp/cmd/burp-agent/server"
+	"burp/cmd/burp-agent/server/mimes"
 	"burp/cmd/burp/api"
 	"burp/internal/docker"
 	"burp/pkg/console"
@@ -31,6 +32,10 @@ var Here = &cli.Command{
 		if burp == nil || tree == nil {
 			return nil
 		}
+		environmentFile, ok := api.GetEnvironmentFile(burp)
+		if !ok {
+			return nil
+		}
 		if err := docker.Init(); err != nil {
 			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "Failed to connect to Docker!")
 			fmt.Println(chalk.Red, err.Error())
@@ -46,7 +51,7 @@ var Here = &cli.Command{
 		_ = os.Setenv(env.BurpSignature.String(), "local")
 
 		secrets := &api.Secrets{
-			Server:    "https://localhost:8873",
+			Server:    "https://localhost:8875",
 			Secret:    "local",
 			Signature: "local",
 		}
@@ -56,7 +61,7 @@ var Here = &cli.Command{
 			log.Logger = log.Logger.Level(zerolog.ErrorLevel)
 			fmt.Println(chalk.Red, "⚠", chalk.Reset, "You are about to deploy the application ", console.Highlight, burp.Service.Name,
 				chalk.Reset, " locally. You have 5 seconds to cancel (CTRL+C) the deployment.")
-			server.Init()
+			server.Init(8875)
 			fmt.Println(chalk.Green, "✓", chalk.Reset, "Burp's Agent server is now temporarily running locally to accommodate this deployment.")
 		}()
 		go func() {
@@ -65,6 +70,9 @@ var Here = &cli.Command{
 				EnableTrace().
 				SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
 				SetDoNotParseResponse(true)
+			if ok && environmentFile != nil {
+				request = request.SetMultipartField("package[]", ".env", mimes.TEXT_MIMETYPE, bytes.NewReader(*environmentFile))
+			}
 			if ok := Package(burp, request); !ok {
 				return
 			}

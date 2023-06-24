@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"strconv"
 )
 
 // Executioner are tasks that are executed during Init which can modify the state of the Gin engine.
@@ -18,7 +19,7 @@ var Executioners []Executioner
 // Init initializes all that is needed to start the burp-agent application, this involves checking the authentication
 // properties, checking the TLS (SSL) certificates and running the Executioners which adds the routes, and other
 // middlewares.
-func Init() {
+func Init(port int16) {
 	EnsureAuthentication()
 	cert, key, err := GetSsl()
 	if err != nil {
@@ -37,13 +38,13 @@ func Init() {
 			executioner(app)
 		}
 		app.NoRoute(func(ctx *gin.Context) { responses.NotFound.Reply(ctx) })
-		if err := app.RunTLS(":8873", cert, key); err != nil {
+		if err := app.RunTLS(":"+strconv.FormatInt(int64(port), 10), cert, key); err != nil {
 			log.Panic().Err(err).Msg("Cannot Start Gin")
 			return
 		}
 	}()
 	log.Info().
-		Int16("port", 8873).
+		Int16("port", port).
 		Str("host", "0.0.0.0").
 		Msg("Gin is now running")
 }
