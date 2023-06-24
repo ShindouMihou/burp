@@ -7,10 +7,10 @@ import (
 
 var _ = burper.Add(burper.Function{
 	Name: "home",
-	Transformer: func(call *burper.Call, tree *burper.Tree) ([]byte, error) {
-		args, err := call.ExecStack(tree)
+	Transformer: func(call *burper.FunctionCall, flow *burper.Flow) ([]byte, error) {
+		args, err := call.ExecStack(flow)
 		if err != nil {
-			return nil, burper.CreateError(call, err.Error())
+			return nil, call.FormatErr(err)
 		}
 		return []byte(fileutils.JoinHomePath(args...)), nil
 	},

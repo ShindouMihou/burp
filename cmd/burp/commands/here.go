@@ -28,8 +28,8 @@ var Here = &cli.Command{
 	Usage: "burp deploy [directory, defaults to working directory]",
 	Action: func(ctx *cli.Context) error {
 		directory := ctx.Args().First()
-		burp, tree := api.GetBurper(directory)
-		if burp == nil || tree == nil {
+		burp, flow := api.GetBurper(directory)
+		if burp == nil || flow == nil {
 			return nil
 		}
 		environmentFile, ok := api.GetEnvironmentFile(burp)
@@ -68,7 +68,7 @@ var Here = &cli.Command{
 			time.Sleep(5 * time.Second)
 			request := secrets.Client().
 				EnableTrace().
-				SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
+				SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 				SetDoNotParseResponse(true)
 			if ok && environmentFile != nil {
 				request = request.SetMultipartField("package[]", ".env", mimes.TEXT_MIMETYPE, bytes.NewReader(*environmentFile))

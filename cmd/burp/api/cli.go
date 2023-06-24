@@ -12,23 +12,23 @@ import (
 	"path/filepath"
 )
 
-func GetBurper(directory string) (*services.Burp, *burper.Tree) {
+func GetBurper(directory string) (*services.Burp, *burper.Flow) {
 	if !utils.HasSuffixStr(directory, ".toml") {
 		directory = filepath.Join(directory, "burp.toml")
 	}
-	tree, err := burper.FromFile(directory)
+	flow, err := burper.FromFile(directory)
 	if err != nil {
 		fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We couldn't analyze into ", console.Highlight, directory, " file!")
 		fmt.Println(chalk.Red, err.Error())
 		return nil, nil
 	}
 	var burp services.Burp
-	if err = toml.Unmarshal(tree.Bytes(), &burp); err != nil {
+	if err = toml.Unmarshal(flow.Bytes(), &burp); err != nil {
 		fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We couldn't analyze into ", console.Highlight, directory, " file!")
 		fmt.Println(chalk.Red, err.Error())
 		return nil, nil
 	}
-	return &burp, tree
+	return &burp, flow
 }
 
 func GetEnvironmentFile(burp *services.Burp) (*[]byte, bool) {

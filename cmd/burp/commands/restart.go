@@ -25,14 +25,14 @@ var Restart = &cli.Command{
 		if !ok {
 			return nil
 		}
-		burp, tree := api.GetBurper(answers.Directory)
-		if burp == nil || tree == nil {
+		burp, flow := api.GetBurper(answers.Directory)
+		if burp == nil || flow == nil {
 			return nil
 		}
 		var createRequest = func() *resty.Request {
 			return secrets.Client().
 				EnableTrace().
-				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
+				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 				SetDoNotParseResponse(true)
 		}
 		request := createRequest()

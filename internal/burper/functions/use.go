@@ -2,18 +2,17 @@ package functions
 
 import (
 	burper "burp/internal/burper"
-	"burp/pkg/utils"
 )
 
 var _ = burper.Add(burper.Function{
 	Name: "use",
-	Transformer: func(call *burper.Call, tree *burper.Tree) ([]byte, error) {
+	Transformer: func(call *burper.FunctionCall, flow *burper.Flow) ([]byte, error) {
 		if len(call.Args) < 1 {
-			return nil, burper.CreateMissingArgumentError(call, utils.Array("key", "string"))
+			return nil, call.MissingArgumentErr("key", "string")
 		}
-		v, e := tree.Store[call.Args[0]]
+		v, e := flow.Heap[call.Args[0]]
 		if !e {
-			return nil, burper.CreateError(call, "no such element called \""+call.Args[0]+"\"")
+			return nil, call.Err("no such element called \"" + call.Args[0] + "\"")
 		}
 		return v, nil
 	},

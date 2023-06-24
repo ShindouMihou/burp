@@ -23,25 +23,25 @@ func (env *Environment) Translate(dir string) (*string, error) {
 		line := make([]byte, len(buf.Bytes()))
 		copy(line, buf.Bytes())
 
-		if bytes.HasPrefix(line, burper.COMMENT_KEY) {
+		if bytes.HasPrefix(line, burper.CommentKey) {
 			b.Write(line)
-			b.Write(burper.NEWLINE_KEY)
+			b.Write(burper.NewlineKey)
 			continue
 		}
-		parts := bytes.SplitN(line, burper.EQUALS_KEY, 2)
+		parts := bytes.SplitN(line, burper.EqualsKey, 2)
 		if len(parts) != 2 {
 			b.Write(line)
-			b.Write(burper.NEWLINE_KEY)
+			b.Write(burper.NewlineKey)
 			continue
 		}
 		key, _ := parts[0], parts[1]
 		if replacement, exists := env.Replacements[string(key)]; exists {
 			b.WriteString(string(key) + "=" + replacement)
-			b.Write(burper.NEWLINE_KEY)
+			b.Write(burper.NewlineKey)
 			continue
 		}
 		b.Write(line)
-		b.Write(burper.NEWLINE_KEY)
+		b.Write(burper.NewlineKey)
 	}
 	return utils.Ptr(b.String()), nil
 }
@@ -51,10 +51,10 @@ func EnvironmentReadBuffer(reader io.Reader) []string {
 	var e []string
 	for buf.Scan() {
 		line := buf.Bytes()
-		if bytes.HasPrefix(line, burper.COMMENT_KEY) {
+		if bytes.HasPrefix(line, burper.CommentKey) {
 			continue
 		}
-		parts := bytes.SplitN(line, burper.EQUALS_KEY, 2)
+		parts := bytes.SplitN(line, burper.EqualsKey, 2)
 		if len(parts) != 2 {
 			continue
 		}

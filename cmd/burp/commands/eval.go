@@ -17,13 +17,13 @@ var Eval = &cli.Command{
 			fmt.Println(chalk.Red, "૮₍˃⤙˂₎ა", chalk.Reset, "You need to supply the ", console.Highlight, "text", chalk.Reset, "to evaluate!")
 			return nil
 		}
-		tree, err := burper.FromString(arg)
+		flow, err := burper.FromString(arg)
 		if err != nil {
 			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "Failed to decode the secret nuclear codes!")
 			fmt.Println(chalk.Red, err.Error())
 			return nil
 		}
-		fmt.Println(tree.String())
+		fmt.Println(flow.String())
 		return nil
 	},
 }

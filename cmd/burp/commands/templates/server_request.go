@@ -99,13 +99,13 @@ func CreateServerRequestCommand(name string, description string, action ServerRe
 			if !ok {
 				return nil
 			}
-			burp, tree := api.GetBurper(answers.Directory)
-			if burp == nil || tree == nil {
+			burp, flow := api.GetBurper(answers.Directory)
+			if burp == nil || flow == nil {
 				return nil
 			}
 			request := secrets.Client().
 				EnableTrace().
-				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
+				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 				SetDoNotParseResponse(true)
 
 			api.Streamed(action(secrets, request))

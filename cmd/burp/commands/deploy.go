@@ -32,8 +32,8 @@ var Deploy = &cli.Command{
 		if !ok {
 			return nil
 		}
-		burp, tree := api.GetBurper(answers.Directory)
-		if burp == nil || tree == nil {
+		burp, flow := api.GetBurper(answers.Directory)
+		if burp == nil || flow == nil {
 			return nil
 		}
 		environmentFile, ok := api.GetEnvironmentFile(burp)
@@ -42,7 +42,7 @@ var Deploy = &cli.Command{
 		}
 		request := secrets.Client().
 			EnableTrace().
-			SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(tree.Bytes())).
+			SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 			SetDoNotParseResponse(true)
 		if ok && environmentFile != nil {
 			request = request.SetMultipartField("package[]", ".env", mimes.TEXT_MIMETYPE, bytes.NewReader(*environmentFile))

@@ -1,16 +1,16 @@
 package burper
 
 import (
-	utils "burp/pkg/utils"
+	"burp/pkg/utils"
 	"bytes"
 )
 
-func Parse(line []byte) ([]Call, error) {
-	var calls []Call
-	matches := findMatches(line)
+func parse(line []byte) ([]FunctionCall, error) {
+	var calls []FunctionCall
+	matches := findFunctionCalls(line)
 	for _, match := range matches {
 		match := match
-		call, err := extractComponents(&match)
+		call, err := extractFunctionCalls(&match)
 		if err != nil {
 			// Likely that it's not a burp call.
 			if err == ErrMalformedBurpCall {
@@ -23,22 +23,22 @@ func Parse(line []byte) ([]Call, error) {
 	return calls, nil
 }
 
-type Call struct {
-	Source   *Origin
+type FunctionCall struct {
+	Source   *matchedFunctionCall
 	Function string
 	Args     []string
 	As       *string
 }
 
-type Origin struct {
+type matchedFunctionCall struct {
 	Start     int
 	End       int
 	Match     []byte
 	FullMatch []byte
 }
 
-func findMatches(line []byte) []Origin {
-	var matches []Origin
+func findFunctionCalls(line []byte) []matchedFunctionCall {
+	var matches []matchedFunctionCall
 	start, end := -1, -1
 
 	for index, char := range line {
@@ -50,7 +50,7 @@ func findMatches(line []byte) []Origin {
 			start = index
 		} else if char == ']' && start != -1 {
 			end = index
-			matches = append(matches, Origin{Start: start, End: end, Match: line[start+1 : end], FullMatch: line[start : end+1]})
+			matches = append(matches, matchedFunctionCall{Start: start, End: end, Match: line[start+1 : end], FullMatch: line[start : end+1]})
 
 			start, end = -1, -1
 		}
@@ -58,24 +58,25 @@ func findMatches(line []byte) []Origin {
 	return matches
 }
 
-func extractComponents(origin *Origin) (*Call, error) {
-	if !utils.HasPrefix(origin.Match, COMPLETE_PREFIX_KEY) {
+func extractFunctionCalls(match *matchedFunctionCall) (*FunctionCall, error) {
+	if !utils.HasPrefix(match.Match, CompletePrefixKey) {
 		return nil, ErrMalformedBurpCall
 	}
-	parts := bytes.SplitN(origin.Match, SEPERATOR_KEY, 2)
+	// Splits "burp:" and "Function(args)" apart which leaves us with two parts.
+	parts := bytes.SplitN(match.Match, SeperatorKey, 2)
 	if len(parts) != 2 {
 		return nil, ErrMalformedBurpCall
 	}
-	burp := Call{Source: origin}
-	call := bytes.TrimSpace(parts[1:][0])
+	functionCall := FunctionCall{Source: match}
+
+	callText := bytes.TrimSpace(parts[1])
 	var components [][]byte
 
 	var args []byte
 	argsOpenIndex := 0
 
-	end := 0
-	stack := 0
-	for index, char := range call {
+	stack, end := 0, 0
+	for index, char := range callText {
 		index, char := index, char
 		if char == '(' {
 			if stack == 0 {
@@ -87,32 +88,32 @@ func extractComponents(origin *Origin) (*Call, error) {
 		if char == ')' {
 			stack--
 			if stack == 0 {
-				args = call[argsOpenIndex:index]
+				args = callText[argsOpenIndex:index]
 			}
 			continue
 		}
 		if char == ' ' && stack == 0 {
-			components = append(components, call[end:index])
+			components = append(components, callText[end:index])
 			end = index + 1
 			continue
 		}
-		if (index + 1) == len(call) {
-			components = append(components, call[end:(index+1)])
+		if (index + 1) == len(callText) {
+			components = append(components, callText[end:(index+1)])
 		}
 	}
 	if len(components) == 0 {
-		components = [][]byte{call}
+		components = [][]byte{callText}
 	}
 	size := len(components) - 1
-	if size > 1 && bytes.EqualFold(components[size-1], AS_TOKEN) {
-		burp.As = utils.Ptr(string(components[size]))
+	if size > 1 && bytes.EqualFold(components[size-1], AsToken) {
+		functionCall.As = utils.Ptr(string(components[size]))
 	}
-	burp.Function = string(bytes.ToLower(utils.Cut(components[0], '(')))
-	burp.Args = extractArguments(args)
-	return &burp, nil
+	functionCall.Function = string(bytes.ToLower(utils.Cut(components[0], '(')))
+	functionCall.Args = extractFunctionArguments(args)
+	return &functionCall, nil
 }
 
-func extractArguments(source []byte) []string {
+func extractFunctionArguments(source []byte) []string {
 	var args []string
 	stack, start := 0, 0
 	for index, char := range source {

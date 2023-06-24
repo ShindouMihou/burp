@@ -2,16 +2,15 @@ package functions
 
 import (
 	burper "burp/internal/burper"
-	"burp/pkg/utils"
 	"strings"
 )
 
 var _ = burper.Add(burper.Function{
 	Name: "concat",
-	Transformer: func(call *burper.Call, tree *burper.Tree) ([]byte, error) {
-		args, err := call.ExecStack(tree)
+	Transformer: func(call *burper.FunctionCall, flow *burper.Flow) ([]byte, error) {
+		args, err := call.ExecStack(flow)
 		if err != nil {
-			return nil, burper.CreateError(call, err.Error())
+			return nil, call.FormatErr(err)
 		}
 		var res string
 		if len(args) > 2 {
@@ -22,7 +21,7 @@ var _ = burper.Add(burper.Function{
 			res = b.String()
 		} else {
 			if len(args) < 2 {
-				return nil, burper.CreateMissingArgumentError(call, utils.Array("addends", "string"))
+				return nil, call.MissingArgumentErr("addends", "string")
 			}
 			res = args[0] + args[1]
 		}
