@@ -228,7 +228,7 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 		logger.Warn().Msg("Cannot find the image specified")
 		logger.Info().Msg("Pulling image")
 		responses.ChannelSend(channel, responses.Create("Cannot find any image named "+image+", pulling image..."))
-		if err = docker.Pull(channel, "mongo"); err != nil {
+		if err = docker.Pull(channel, image); err != nil {
 			return nil, err
 		}
 	}

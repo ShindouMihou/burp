@@ -42,7 +42,7 @@ func HasImage(name string) (bool, error) {
 func Pull(channel *chan any, image string) error {
 	image = strings.ToLower(image)
 	logger := log.With().Str("image", image).Logger()
-	ref, err := reference.ParseNamed(image)
+	ref, err := reference.ParseDockerRef(image)
 	if err != nil {
 		return err
 	}
