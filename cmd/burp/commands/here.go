@@ -80,7 +80,7 @@ var Here = &cli.Command{
 			end <- true
 		}()
 		go func() {
-			sigs := make(chan os.Signal)
+			sigs := make(chan os.Signal, 1)
 			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 			<-sigs
 

@@ -39,7 +39,7 @@ volumes = [
     # These variables sadly only apply to the "source" since Burp's scope is limited to the
     # host server, and not the containers' inside working.
     #-----------------------------
-    { type = "bind", source = "$HOME/.burpy/", target = "/home/burp/.burpy/home/"},
+    { type = "bind", source = "$HOME/.burpy/", target = "/root/.burpy/"},
     { type = "bind", source = "/var/run/docker.sock", target = "/var/run/docker.sock" }
 ]
 ports = [["8873","8873"]]

@@ -73,7 +73,7 @@ func Package(application *burp.Application, request *resty.Request) bool {
 			return false
 		}
 
-		request = request.SetMultipartField("package[]", fileName, "application/gzip", pkg)
+		request.SetMultipartField("package[]", fileName, "application/gzip", pkg)
 	}
 	return true
 }

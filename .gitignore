@@ -4,3 +4,4 @@ burp.env
 .certs/
 .burp/
 .burpy/
+dist/
