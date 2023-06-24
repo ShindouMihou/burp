@@ -1,6 +1,10 @@
-package services
+package burp
 
-import "github.com/pelletier/go-toml"
+type Service struct {
+	Build      string `toml:"build" json:"build"`
+	Repository string `toml:"repository" json:"repository"`
+	Container
+}
 
 type Dependency struct {
 	Image string `toml:"image" json:"image"`
@@ -29,13 +33,7 @@ type PlatformVolume struct {
 	External *bool  `toml:"external,omitempty" json:"external,omitempty"`
 }
 
-type Service struct {
-	Build      string `toml:"build" json:"build"`
-	Repository string `toml:"repository" json:"repository"`
-	Container
-}
-
-type Burp struct {
+type Application struct {
 	Service      Service          `toml:"service" json:"service"`
 	Dependencies []Dependency     `toml:"dependencies,omitempty" json:"dependencies,omitempty"`
 	Environment  *Environment     `toml:"environment,omitempty" json:"environment,omitempty"`
@@ -59,8 +57,4 @@ type Include struct {
 type HashedInclude struct {
 	Include
 	Hash string `toml:"hash" json:"hash"`
-}
-
-func (burp *Burp) TOML() ([]byte, error) {
-	return toml.Marshal(burp)
 }

@@ -1,9 +1,8 @@
-package burpy
+package burp
 
 import (
 	"burp/cmd/burp-agent/server/responses"
 	"burp/internal/docker"
-	"burp/internal/services"
 	"burp/pkg/fileutils"
 	"context"
 	"encoding/json"
@@ -19,10 +18,10 @@ import (
 var TemporaryFilesFolder = fileutils.JoinHomePath(".burpy", ".build", ".files")
 var UnpackedFilesFolder = fileutils.JoinHomePath(".burpy", "home")
 
-func Package(burp *services.Burp) error {
-	var hashes []services.HashedInclude
-	dir := filepath.Join(TemporaryFilesFolder, burp.Service.Name)
-	for _, include := range burp.Includes {
+func (application *Application) Package() error {
+	var hashes []HashedInclude
+	dir := filepath.Join(TemporaryFilesFolder, application.Service.Name)
+	for _, include := range application.Includes {
 		include := include
 		name := filepath.Join(dir, "pkg", filepath.Base(include.Target))
 		hash, err := fileutils.Copy(include.Source, name)
@@ -33,7 +32,7 @@ func Package(burp *services.Burp) error {
 			return err
 		}
 		include.Source = filepath.Join("pkg", filepath.Base(include.Target))
-		hashes = append(hashes, services.HashedInclude{Include: include, Hash: *hash})
+		hashes = append(hashes, HashedInclude{Include: include, Hash: *hash})
 	}
 	marshal, err := json.Marshal(hashes)
 	if err != nil {
@@ -43,7 +42,7 @@ func Package(burp *services.Burp) error {
 	if err != nil {
 		return err
 	}
-	tarName := fmt.Sprint(burp.Service.Name, "_includes.tar.gz")
+	tarName := fmt.Sprint(application.Service.Name, "_includes.tar.gz")
 	tarName = filepath.Join(TemporaryFilesFolder, ".packaged", tarName)
 	err = fileutils.Tar(dir, tarName)
 	if err != nil {
@@ -56,12 +55,12 @@ func Package(burp *services.Burp) error {
 	return nil
 }
 
-// Clear cleans up all the deployment packages that were involved in this service.
-func Clear(burp *services.Burp) error {
+// CleanRemnants cleans up all the deployment remnants that were involved in this service.
+func (application *Application) CleanRemnants() error {
 	paths := []string{
-		filepath.Join(TemporaryFilesFolder, ".packaged", fmt.Sprint(burp.Service.Name, "_includes.tar.gz")),
-		filepath.Join(TemporaryFilesFolder, burp.Service.Name),
-		filepath.Join(services.TemporaryCloneFolder, burp.Service.Name),
+		filepath.Join(TemporaryFilesFolder, ".packaged", fmt.Sprint(application.Service.Name, "_includes.tar.gz")),
+		filepath.Join(TemporaryFilesFolder, application.Service.Name),
+		filepath.Join(TemporaryCloneFolder, application.Service.Name),
 	}
 	for _, path := range paths {
 		if err := os.RemoveAll(path); err != nil {
@@ -71,15 +70,15 @@ func Clear(burp *services.Burp) error {
 	return nil
 }
 
-func Deploy(channel *chan any, burp *services.Burp, environments []string) {
-	dir, err := burp.Service.Clone()
+func (application *Application) Deploy(channel *chan any, environments []string) {
+	dir, err := application.Service.Clone()
 	if err != nil {
 		log.Err(err).Msg("Cloning Service")
 		responses.ChannelSend(channel, responses.CreateChannelError("Failed to clone repository", err.Error()))
 		return
 	}
-	if burp.Environment.ServerSide {
-		environments, err = burp.Environment.Read(*dir)
+	if application.Environment.ServerSide {
+		environments, err = application.Environment.Read(*dir)
 		if err != nil {
 			log.Err(err).Str("dir", *dir).Msg("Reading Environment")
 			responses.ChannelSend(channel, responses.CreateChannelError("Failed to read environment properties", err.Error()))
@@ -90,15 +89,15 @@ func Deploy(channel *chan any, burp *services.Burp, environments []string) {
 		responses.ChannelSend(channel, responses.Create("Using environment variables from client with length of "+strconv.FormatInt(int64(len(environments)), 10)))
 	}
 	log.Info().Str("dir", *dir).Msg("Build Path")
-	if err := docker.Build(channel, filepath.Join(*dir, burp.Service.Build), burp.Service.Name); err != nil {
+	if err := docker.Build(channel, filepath.Join(*dir, application.Service.Build), application.Service.Name); err != nil {
 		log.Err(err).Msg("Building Image")
 		responses.ChannelSend(channel, responses.CreateChannelError("Failed to save build image", err.Error()))
 		return
 	}
 	var spawn []string
-	for _, dependency := range burp.Dependencies {
+	for _, dependency := range application.Dependencies {
 		dependency := dependency
-		id, err := docker.Deploy(channel, dependency.Image, []string{}, &dependency.Container)
+		id, err := dependency.Container.Deploy(channel, dependency.Image, []string{})
 		if err != nil {
 			log.Err(err).Str("name", dependency.Name)
 			responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn dependency container "+dependency.Name, err.Error()))
@@ -108,15 +107,15 @@ func Deploy(channel *chan any, burp *services.Burp, environments []string) {
 		log.Info().Str("name", dependency.Name).Str("id", *id).Msg("Spawning Container")
 		spawn = append(spawn, *id)
 	}
-	id, err := docker.Deploy(channel, burp.Service.GetImage(), environments, &burp.Service.Container)
+	id, err := application.Service.Container.Deploy(channel, application.Service.GetImage(), environments)
 	if err != nil {
-		responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn container "+burp.Service.Name, err.Error()))
-		log.Err(err).Str("name", burp.Service.Name).Msg("Spawning Container")
+		responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn container "+application.Service.Name, err.Error()))
+		log.Err(err).Str("name", application.Service.Name).Msg("Spawning Container")
 		return
 	}
 	spawn = append(spawn, *id)
-	responses.ChannelSend(channel, responses.Create("Spawned container "+burp.Service.Name+" with id "+*id))
-	log.Info().Str("name", burp.Service.Name).Str("id", *id).Msg("Spawned Container")
+	responses.ChannelSend(channel, responses.Create("Spawned container "+application.Service.Name+" with id "+*id))
+	log.Info().Str("name", application.Service.Name).Str("id", *id).Msg("Spawned Container")
 	for _, id := range spawn {
 		err := docker.Client.ContainerStart(context.TODO(), id, types.ContainerStartOptions{})
 		if err != nil {

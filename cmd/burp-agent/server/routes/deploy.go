@@ -5,8 +5,7 @@ import (
 	"burp/cmd/burp-agent/server/limiter"
 	"burp/cmd/burp-agent/server/mimes"
 	responses "burp/cmd/burp-agent/server/responses"
-	"burp/internal/burpy"
-	"burp/internal/services"
+	"burp/internal/burp"
 	"burp/pkg/fileutils"
 	"burp/pkg/utils"
 	"bytes"
@@ -95,7 +94,7 @@ var _ = server.Add(func(app *gin.Engine) {
 				configBytes = bits
 			}
 			if contentType == mimes.TEXT_MIMETYPE && fileName == ".env" {
-				environments = services.EnvironmentReadBuffer(bytes.NewReader(bits))
+				environments = burp.EnvironmentReadBuffer(bytes.NewReader(bits))
 			}
 		}
 		logger.Info().Msg("Spawning server-side stream...")
@@ -111,22 +110,22 @@ var _ = server.Add(func(app *gin.Engine) {
 			limiter.GlobalAgentLock.Lock()
 			defer limiter.GlobalAgentLock.Unlock()
 
-			var burp services.Burp
-			if err = toml.Unmarshal(configBytes, &burp); err != nil {
+			var application burp.Application
+			if err = toml.Unmarshal(configBytes, &application); err != nil {
 				logger.Err(err).Msg("Failed to parse TOML file into Burp services")
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp services", err.Error()))
 				return
 			}
 
 			if pkg != nil {
-				tarName := fmt.Sprint(burp.Service.Name, "_includes.tar.gz")
+				tarName := fmt.Sprint(application.Service.Name, "_includes.tar.gz")
 				if pkg.Name != tarName {
 					responses.ChannelSend(channel, responses.ErrorResponse{Error: "Invalid uploaded package.", Code: http.StatusBadRequest})
 					return
 				}
 				logger.Info().Msg("Unpacking uploaded files...")
 				responses.ChannelSend(channel, responses.Create("Unpacking uploaded files..."))
-				dir := filepath.Join(burpy.TemporaryFilesFolder, burp.Service.Name)
+				dir := filepath.Join(burp.TemporaryFilesFolder, application.Service.Name)
 				if err = fileutils.MkdirParent(dir); err != nil {
 					responses.ChannelSend(channel, responses.CreateChannelError("Failed to create temporary files folder", err.Error()))
 					return
@@ -137,7 +136,7 @@ var _ = server.Add(func(app *gin.Engine) {
 					return
 				}
 				responses.ChannelSend(channel, responses.Create("Validating checksums of unpacked files..."))
-				var hashes []services.HashedInclude
+				var hashes []burp.HashedInclude
 				metaFileBytes, err := os.ReadFile(filepath.Join(dir, "meta.json"))
 				if err != nil {
 					responses.ChannelSend(channel, responses.CreateChannelError("Failed to read metadata of unpacked files", err.Error()))
@@ -167,7 +166,7 @@ var _ = server.Add(func(app *gin.Engine) {
 						return
 					}
 					target := filepath.Clean(include.Target)
-					target = filepath.Join(burpy.UnpackedFilesFolder, target)
+					target = filepath.Join(burp.UnpackedFilesFolder, target)
 
 					responses.ChannelSend(channel, responses.Create("File "+include.Source+" passed checksum, copying to "+target))
 					if _, err = fileutils.Copy(file, target); err != nil {
@@ -178,9 +177,9 @@ var _ = server.Add(func(app *gin.Engine) {
 			}
 			logger.Info().Msg("Starting build process...")
 			responses.ChannelSend(channel, responses.Create("Starting build process..."))
-			burpy.Deploy(channel, &burp, environments)
+			application.Deploy(channel, environments)
 			responses.ChannelSend(channel, responses.Create("Cleaning all stages..."))
-			if err := burpy.Clear(&burp); err != nil {
+			if err := application.CleanRemnants(); err != nil {
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to clean all stages", err.Error()))
 				return
 			}

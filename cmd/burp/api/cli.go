@@ -1,8 +1,8 @@
 package api
 
 import (
+	"burp/internal/burp"
 	"burp/internal/burper"
-	"burp/internal/services"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
 	"burp/pkg/utils"
@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 )
 
-func GetBurper(directory string) (*services.Burp, *burper.Flow) {
+func GetBurper(directory string) (*burp.Application, *burper.Flow) {
 	if !utils.HasSuffixStr(directory, ".toml") {
-		directory = filepath.Join(directory, "burp.toml")
+		directory = filepath.Join(directory, "application.toml")
 	}
 	flow, err := burper.FromFile(directory)
 	if err != nil {
@@ -22,30 +22,30 @@ func GetBurper(directory string) (*services.Burp, *burper.Flow) {
 		fmt.Println(chalk.Red, err.Error())
 		return nil, nil
 	}
-	var burp services.Burp
-	if err = toml.Unmarshal(flow.Bytes(), &burp); err != nil {
+	var application burp.Application
+	if err = toml.Unmarshal(flow.Bytes(), &application); err != nil {
 		fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We couldn't analyze into ", console.Highlight, directory, " file!")
 		fmt.Println(chalk.Red, err.Error())
 		return nil, nil
 	}
-	return &burp, flow
+	return &application, flow
 }
 
-func GetEnvironmentFile(burp *services.Burp) (*[]byte, bool) {
-	if burp.Environment.ServerSide {
+func GetEnvironmentFile(application *burp.Application) (*[]byte, bool) {
+	if application.Environment.ServerSide {
 		fmt.Println(chalk.Red, "⚠", chalk.Reset, "Server-side translation is enabled, skipping local translations of environment file.")
 		return nil, true
 	}
-	translation, err := burp.Environment.Translate("")
+	translation, err := application.Environment.Translate("")
 	if err != nil {
 		fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We couldn't read the environment file!")
 		fmt.Println(chalk.Red, err.Error())
 		return nil, false
 	}
-	if burp.Environment.Override {
+	if application.Environment.Override {
 		fmt.Println(chalk.Red, "⚠", chalk.Reset, "Environment file override is enabled, overriding ", console.Highlight,
-			burp.Environment.Baseline, chalk.Reset)
-		if err = fileutils.Save(burp.Environment.Baseline, []byte(*translation)); err != nil {
+			application.Environment.Baseline, chalk.Reset)
+		if err = fileutils.Save(application.Environment.Baseline, []byte(*translation)); err != nil {
 			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We couldn't override the environment file!")
 			fmt.Println(chalk.Red, err.Error())
 			return nil, false

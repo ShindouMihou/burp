@@ -5,8 +5,7 @@ import (
 	api "burp/cmd/burp/api"
 	"burp/cmd/burp/commands/logins"
 	"burp/cmd/burp/commands/templates"
-	"burp/internal/burpy"
-	"burp/internal/services"
+	"burp/internal/burp"
 	"burp/pkg/console"
 	"burp/pkg/fileutils"
 	"bytes"
@@ -55,17 +54,17 @@ var Deploy = &cli.Command{
 	},
 }
 
-func Package(burp *services.Burp, request *resty.Request) bool {
-	if len(burp.Includes) > 0 {
-		err := burpy.Package(burp)
+func Package(application *burp.Application, request *resty.Request) bool {
+	if len(application.Includes) > 0 {
+		err := application.Package()
 		if err != nil {
 			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "Mom stopped us from packing our things to escape!")
 			fmt.Println(chalk.Red, err.Error())
 			return false
 		}
 
-		fileName := fmt.Sprint(burp.Service.Name, "_includes.tar.gz")
-		tarName := filepath.Join(burpy.TemporaryFilesFolder, ".packaged", fileName)
+		fileName := fmt.Sprint(application.Service.Name, "_includes.tar.gz")
+		tarName := filepath.Join(burp.TemporaryFilesFolder, ".packaged", fileName)
 
 		pkg, err := fileutils.Open(tarName)
 		if err != nil {

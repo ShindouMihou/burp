@@ -5,8 +5,8 @@ import (
 	"burp/cmd/burp-agent/server/limiter"
 	"burp/cmd/burp-agent/server/requests"
 	"burp/cmd/burp-agent/server/responses"
+	"burp/internal/burp"
 	"burp/internal/docker"
-	"burp/internal/services"
 	"burp/pkg/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -38,30 +38,30 @@ var _ = server.Add(func(app *gin.Engine) {
 
 			limiter.GlobalAgentLock.Lock()
 			defer limiter.GlobalAgentLock.Unlock()
-			var burp services.Burp
-			if err := toml.Unmarshal(bytes, &burp); err != nil {
+			var application burp.Application
+			if err := toml.Unmarshal(bytes, &application); err != nil {
 				logger.Info().Err(err).Msg("Failed to parse TOML file into Burp services")
 				responses.ChannelSend(channel, responses.CreateChannelError("Failed to parse TOML file into Burp services", err.Error()))
 				return
 			}
 
-			for _, dependency := range burp.Dependencies {
-				responses.ChannelSend(channel, responses.Create("Starting dependency container (burp."+dependency.Name+")...."))
-				if err := docker.Start(fmt.Sprint("burp.", dependency.Name)); err != nil {
+			for _, dependency := range application.Dependencies {
+				responses.ChannelSend(channel, responses.Create("Starting dependency container (application."+dependency.Name+")...."))
+				if err := docker.Start(fmt.Sprint("application.", dependency.Name)); err != nil {
 					logger.Info().Err(err).Str("name", dependency.Name).Msg("Failed to start dependency container")
-					responses.ChannelSend(channel, responses.CreateChannelError("Failed to start dependency container (burp."+dependency.Name+")", err.Error()))
+					responses.ChannelSend(channel, responses.CreateChannelError("Failed to start dependency container (application."+dependency.Name+")", err.Error()))
 					return
 				}
-				responses.ChannelSend(channel, responses.Create("Started dependency container (burp."+dependency.Name+")"))
+				responses.ChannelSend(channel, responses.Create("Started dependency container (application."+dependency.Name+")"))
 			}
 
-			responses.ChannelSend(channel, responses.Create("Starting main service container (burp."+burp.Service.Name+")...."))
-			if err := docker.Start(fmt.Sprint("burp.", burp.Service.Name)); err != nil {
-				logger.Info().Err(err).Str("name", burp.Service.Name).Msg("Failed to start main service container")
-				responses.ChannelSend(channel, responses.CreateChannelError("Failed to start main service container (burp."+burp.Service.Name+")", err.Error()))
+			responses.ChannelSend(channel, responses.Create("Starting main service container (application."+application.Service.Name+")...."))
+			if err := docker.Start(fmt.Sprint("application.", application.Service.Name)); err != nil {
+				logger.Info().Err(err).Str("name", application.Service.Name).Msg("Failed to start main service container")
+				responses.ChannelSend(channel, responses.CreateChannelError("Failed to start main service container (application."+application.Service.Name+")", err.Error()))
 				return
 			}
-			responses.ChannelSend(channel, responses.Create("Started main service container (burp."+burp.Service.Name+")"))
+			responses.ChannelSend(channel, responses.Create("Started main service container (application."+application.Service.Name+")"))
 			defer close(*channel)
 		}()
 
