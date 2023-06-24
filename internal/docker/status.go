@@ -60,7 +60,7 @@ func Handle(channel *chan any, log zerolog.Logger, scanner *bufio.Scanner) error
 			}
 		}
 		if stream.Status != nil {
-			if strings.Contains(*stream.Stream, "\n") {
+			if strings.Contains(*stream.Status, "\n") {
 				streams := strings.Split(*stream.Status, "\n")
 				for _, str := range streams {
 					str := strings.ReplaceAll(str, "\n", "")
