@@ -26,6 +26,7 @@ type Container struct {
 	Devices          []string                 `toml:"device,omitempty" json:"devices,omitempty"`
 	DNS              []string                 `toml:"dns,omitempty" json:"dns,omitempty"`
 	Environment      map[string]string        `toml:"environment,omitempty" json:"environment,omitempty"`
+	Override         *bool                    `toml:"override,omitempty" json:"override"`
 }
 
 type PlatformVolume struct {

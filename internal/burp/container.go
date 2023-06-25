@@ -164,7 +164,13 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 		return nil, err
 	}
 	if liveContainer != nil {
+		if ctr.Override != nil && !*ctr.Override {
+			logger.Warn().Str("id", liveContainer.ID).Msg("Container already exists, not overriding")
+			responses.Message(channel, "Container ", name, " already exists and override is disabled for this container, skipping...")
+			return nil, nil
+		}
 		logger.Warn().Str("id", liveContainer.ID).Msg("Removing Container")
+		responses.Message(channel, "Removing container with the id ", liveContainer.ID, " for container ", name)
 		responses.ChannelSend(channel, responses.Create("Removing container with the id "+liveContainer.ID+" for container "+name))
 		if err = docker.Remove(liveContainer.ID); err != nil {
 			return nil, err
