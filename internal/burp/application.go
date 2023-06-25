@@ -120,9 +120,11 @@ func (application *Application) Deploy(channel *chan any, environments []string)
 			responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn dependency container "+dependency.Name, err.Error()))
 			return
 		}
-		responses.ChannelSend(channel, responses.Create("Spawned container "+dependency.Name+" with id "+*id))
-		log.Info().Str("name", dependency.Name).Str("id", *id).Msg("Spawning Container")
-		spawn = append(spawn, *id)
+		if id != nil {
+			responses.ChannelSend(channel, responses.Create("Spawned container "+dependency.Name+" with id "+*id))
+			log.Info().Str("name", dependency.Name).Str("id", *id).Msg("Spawning Container")
+			spawn = append(spawn, *id)
+		}
 	}
 	id, err := application.Service.Container.Deploy(channel, application.Service.GetImage(), environments)
 	if err != nil {
@@ -130,9 +132,11 @@ func (application *Application) Deploy(channel *chan any, environments []string)
 		log.Err(err).Str("name", application.Service.Name).Msg("Spawning Container")
 		return
 	}
-	spawn = append(spawn, *id)
-	responses.ChannelSend(channel, responses.Create("Spawned container "+application.Service.Name+" with id "+*id))
-	log.Info().Str("name", application.Service.Name).Str("id", *id).Msg("Spawned Container")
+	if id != nil {
+		spawn = append(spawn, *id)
+		responses.ChannelSend(channel, responses.Create("Spawned container "+application.Service.Name+" with id "+*id))
+		log.Info().Str("name", application.Service.Name).Str("id", *id).Msg("Spawned Container")
+	}
 	for _, id := range spawn {
 		err := docker.Client.ContainerStart(context.TODO(), id, types.ContainerStartOptions{})
 		if err != nil {
