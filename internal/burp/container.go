@@ -133,9 +133,11 @@ func (ctr *Container) GetRestartPolicy() container.RestartPolicy {
 	return policy
 }
 
-func (ctr *Container) exec(channel *chan any, logger *zerolog.Logger, contexts []string, task func(name string) error) bool {
+type containerTask func(ctx context.Context, name string) error
+
+func (ctr *Container) exec(ctx context.Context, channel *chan any, logger *zerolog.Logger, contexts []string, task containerTask) bool {
 	responses.Message(channel, contexts[0], " container (burp.", ctr.Name, ")....")
-	if err := task("burp." + ctr.Name); err != nil {
+	if err := task(ctx, "burp."+ctr.Name); err != nil {
 		logger.Info().Err(err).Str("name", ctr.Name).Msg("Failed to " + contexts[1] + " container")
 		responses.Error(channel, "Failed to "+contexts[1]+" container (burp."+ctr.Name+")", err)
 		return false
@@ -144,19 +146,19 @@ func (ctr *Container) exec(channel *chan any, logger *zerolog.Logger, contexts [
 	return true
 }
 
-func (ctr *Container) Start(channel *chan any, logger *zerolog.Logger) bool {
-	return ctr.exec(channel, logger, []string{"Starting", "start", "Started"}, docker.Start)
+func (ctr *Container) Start(ctx context.Context, channel *chan any, logger *zerolog.Logger) bool {
+	return ctr.exec(ctx, channel, logger, []string{"Starting", "start", "Started"}, docker.Start)
 }
 
-func (ctr *Container) Remove(channel *chan any, logger *zerolog.Logger) bool {
-	return ctr.exec(channel, logger, []string{"Removing", "remove", "Removed"}, docker.Remove)
+func (ctr *Container) Remove(ctx context.Context, channel *chan any, logger *zerolog.Logger) bool {
+	return ctr.exec(ctx, channel, logger, []string{"Removing", "remove", "Removed"}, docker.Remove)
 }
 
-func (ctr *Container) Stop(channel *chan any, logger *zerolog.Logger) bool {
-	return ctr.exec(channel, logger, []string{"Stopping", "stop", "Stopped"}, docker.Kill)
+func (ctr *Container) Stop(ctx context.Context, channel *chan any, logger *zerolog.Logger) bool {
+	return ctr.exec(ctx, channel, logger, []string{"Stopping", "stop", "Stopped"}, docker.Kill)
 }
 
-func (ctr *Container) Deploy(channel *chan any, image string, environments []string) (*string, error) {
+func (ctr *Container) Deploy(ctx context.Context, channel *chan any, image string, environments []string) (*string, error) {
 	name := "burp." + ctr.Name
 	logger := log.With().Str("name", ctr.Name).Logger()
 	liveContainer, err := docker.GetContainer(name)
@@ -172,7 +174,7 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 		logger.Warn().Str("id", liveContainer.ID).Msg("Removing Container")
 		responses.Message(channel, "Removing container with the id ", liveContainer.ID, " for container ", name)
 		responses.ChannelSend(channel, responses.Create("Removing container with the id "+liveContainer.ID+" for container "+name))
-		if err = docker.Remove(liveContainer.ID); err != nil {
+		if err = docker.Remove(ctx, liveContainer.ID); err != nil {
 			return nil, err
 		}
 	}
@@ -191,7 +193,7 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 			logger.Warn().Msg("Cannot find the volume specified")
 			logger.Info().Msg("Creating volume")
 			responses.ChannelSend(channel, responses.Create("Cannot find any volume named "+mnt.Source+", creating volume..."))
-			_, err = docker.Client.VolumeCreate(context.TODO(), volume.CreateOptions{Name: mnt.Source})
+			_, err = docker.Client.VolumeCreate(ctx, volume.CreateOptions{Name: mnt.Source})
 			if err != nil {
 				return nil, err
 			}
@@ -211,7 +213,7 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 			logger.Warn().Msg("Cannot find the network specified")
 			logger.Info().Msg("Creating network")
 			responses.ChannelSend(channel, responses.Create("Cannot find any network named "+net+", creating network..."))
-			_, err := docker.Client.NetworkCreate(context.TODO(), net, types.NetworkCreate{
+			_, err := docker.Client.NetworkCreate(ctx, net, types.NetworkCreate{
 				CheckDuplicate: true,
 			})
 			if err != nil {
@@ -234,11 +236,11 @@ func (ctr *Container) Deploy(channel *chan any, image string, environments []str
 		logger.Warn().Msg("Cannot find the image specified")
 		logger.Info().Msg("Pulling image")
 		responses.ChannelSend(channel, responses.Create("Cannot find any image named "+image+", pulling image..."))
-		if err = docker.Pull(channel, image); err != nil {
+		if err = docker.Pull(ctx, channel, image); err != nil {
 			return nil, err
 		}
 	}
-	response, err := docker.Client.ContainerCreate(context.TODO(), &container.Config{
+	response, err := docker.Client.ContainerCreate(ctx, &container.Config{
 		Hostname:     ctr.Hostname,
 		User:         ctr.User,
 		ExposedPorts: exposedPorts,

@@ -6,6 +6,6 @@ import (
 
 func HasVolume(name string) (bool, error) {
 	return has(func() (any, error) {
-		return Client.VolumeInspect(context.TODO(), name)
+		return Client.VolumeInspect(context.Background(), name)
 	})
 }

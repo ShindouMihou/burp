@@ -5,12 +5,12 @@ import (
 	"burp/cmd/burp-agent/server/requests"
 	"burp/cmd/burp-agent/server/responses"
 	"burp/internal/burp"
-	"burp/pkg/utils"
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
 
-type StreamingRoute = func(channel *chan any, logger *zerolog.Logger, application *burp.Application)
+type StreamingRoute = func(ctx context.Context, channel *chan any, logger *zerolog.Logger, application *burp.Application)
 
 func StreamingConfigOnlyRoute(action StreamingRoute) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -21,9 +21,7 @@ func StreamingConfigOnlyRoute(action StreamingRoute) gin.HandlerFunc {
 		}
 		logger.Info().Msg("Spawning a server-side stream...")
 		responses.AddSseHeaders(ctx)
-
-		channel := utils.Ptr(make(chan any, 10))
-		go func() {
+		responses.Stream(ctx, func(context context.Context, channel *chan any) {
 			limiter.Await(channel, logger)
 			defer limiter.GlobalAgentLock.Unlock()
 
@@ -32,10 +30,7 @@ func StreamingConfigOnlyRoute(action StreamingRoute) gin.HandlerFunc {
 				return
 			}
 
-			defer close(*channel)
-			action(channel, logger, &application)
-		}()
-
-		responses.Stream(ctx, channel)
+			action(ctx, channel, logger, &application)
+		})
 	}
 }

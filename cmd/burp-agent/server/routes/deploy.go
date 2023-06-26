@@ -98,10 +98,7 @@ var _ = server.Add(func(app *gin.Engine) {
 		}
 		logger.Info().Msg("Spawning server-side stream...")
 		responses.AddSseHeaders(ctx)
-
-		channel := utils.Ptr(make(chan any, 10))
-		go func() {
-			defer close(*channel)
+		responses.Stream(ctx, func(context context.Context, channel *chan any) {
 			limiter.Await(channel, logger)
 			defer limiter.GlobalAgentLock.Unlock()
 
@@ -117,26 +114,26 @@ var _ = server.Add(func(app *gin.Engine) {
 					return
 				}
 				logger.Info().Msg("Unpacking uploaded files...")
-				responses.ChannelSend(channel, responses.Create("Unpacking uploaded files..."))
+				responses.Message(channel, "Unpacking uploaded files...")
 				dir := filepath.Join(burp.TemporaryFilesFolder, application.Service.Name)
 				if err = fileutils.MkdirParent(dir); err != nil {
-					responses.ChannelSend(channel, responses.CreateChannelError("Failed to create temporary files folder", err.Error()))
+					responses.Error(channel, "Failed to create temporary files folder", err)
 					return
 				}
 				buffer := bytes.NewReader(pkg.Contents)
-				if err = extract.Archive(context.TODO(), buffer, dir, nil); err != nil {
-					responses.ChannelSend(channel, responses.CreateChannelError("Failed to unpack uploaded package", err.Error()))
+				if err = extract.Archive(context, buffer, dir, nil); err != nil {
+					responses.Error(channel, "Failed to unpack uploaded package", err)
 					return
 				}
-				responses.ChannelSend(channel, responses.Create("Validating checksums of unpacked files..."))
+				responses.Message(channel, "Validating checksums of unpacked files...")
 				var hashes []burp.HashedInclude
 				metaFileBytes, err := os.ReadFile(filepath.Join(dir, "meta.json"))
 				if err != nil {
-					responses.ChannelSend(channel, responses.CreateChannelError("Failed to read metadata of unpacked files", err.Error()))
+					responses.Error(channel, "Failed to read metadata of unpacked files", err)
 					return
 				}
 				if err = json.Unmarshal(metaFileBytes, &hashes); err != nil {
-					responses.ChannelSend(channel, responses.CreateChannelError("Failed to read metadata of unpacked files", err.Error()))
+					responses.Error(channel, "Failed to read metadata of unpacked files", err)
 					return
 				}
 				for _, include := range hashes {
@@ -144,12 +141,12 @@ var _ = server.Add(func(app *gin.Engine) {
 					file = filepath.Join(dir, "pkg", file)
 					f, err := fileutils.Open(file)
 					if err != nil {
-						responses.ChannelSend(channel, responses.CreateChannelError("Failed to read metadata of unpacked files", err.Error()))
+						responses.Error(channel, "Failed to read metadata of unpacked files", err)
 						return
 					}
 					hash := sha256.New()
 					if _, err := io.Copy(hash, f); err != nil {
-						responses.ChannelSend(channel, responses.CreateChannelError("Failed to read metadata of unpacked files", err.Error()))
+						responses.Error(channel, "Failed to read metadata of unpacked files", err)
 						return
 					}
 					fileutils.Close(f)
@@ -161,24 +158,24 @@ var _ = server.Add(func(app *gin.Engine) {
 					target := filepath.Clean(include.Target)
 					target = filepath.Join(burp.UnpackedFilesFolder, target)
 
-					responses.ChannelSend(channel, responses.Create("File "+include.Source+" passed checksum, copying to "+target))
+					responses.Message(channel, "File ", include.Source, " passed checksum, copying to ", target)
 					if _, err = fileutils.Copy(file, target); err != nil {
-						responses.ChannelSend(channel, responses.CreateChannelError("Failed to copy file to destination", err.Error()))
+						responses.Error(channel, "Failed to copy file to destination", err)
 						return
 					}
 				}
 			}
 			logger.Info().Msg("Starting build process...")
-			responses.ChannelSend(channel, responses.Create("Starting build process..."))
-			application.Deploy(channel, environments)
-			responses.ChannelSend(channel, responses.Create("Cleaning all stages..."))
-			if err := application.CleanRemnants(); err != nil {
-				responses.ChannelSend(channel, responses.CreateChannelError("Failed to clean all stages", err.Error()))
-				return
-			}
-		}()
-
-		responses.Stream(ctx, channel)
+			responses.Message(channel, "Starting build process...")
+			defer func() {
+				if err := application.CleanRemnants(); err != nil {
+					logger.Err(err).Msg("Failed to clean remnants.")
+					return
+				}
+				logger.Debug().Msg("Cleaned remnants.")
+			}()
+			application.Deploy(context, channel, environments)
+		})
 	})
 })
 

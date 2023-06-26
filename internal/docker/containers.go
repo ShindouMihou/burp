@@ -7,24 +7,24 @@ import (
 
 func GetContainer(name string) (*types.ContainerJSON, error) {
 	return returningTask(func() (types.ContainerJSON, error) {
-		return Client.ContainerInspect(context.TODO(), "/"+name)
+		return Client.ContainerInspect(context.Background(), "/"+name)
 	})
 }
 
-func Kill(name string) error {
+func Kill(ctx context.Context, name string) error {
 	return nonReturningTask(func() error {
-		return Client.ContainerKill(context.TODO(), name, "SIGKILL")
+		return Client.ContainerKill(ctx, name, "SIGKILL")
 	})
 }
 
-func Start(name string) error {
+func Start(ctx context.Context, name string) error {
 	return nonReturningTask(func() error {
-		return Client.ContainerStart(context.TODO(), name, types.ContainerStartOptions{})
+		return Client.ContainerStart(ctx, name, types.ContainerStartOptions{})
 	})
 }
 
-func Remove(name string) error {
+func Remove(ctx context.Context, name string) error {
 	return nonReturningTask(func() error {
-		return Client.ContainerRemove(context.TODO(), name, types.ContainerRemoveOptions{Force: true})
+		return Client.ContainerRemove(ctx, name, types.ContainerRemoveOptions{Force: true})
 	})
 }

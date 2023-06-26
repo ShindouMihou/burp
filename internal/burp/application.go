@@ -87,7 +87,7 @@ func (application *Application) CleanRemnants() error {
 
 // Deploy deploys the application, this builds the main service's image and spawns a container for it
 // before spawning the dependency containers (pulling when needed) and then starting all the containers.
-func (application *Application) Deploy(channel *chan any, environments []string) {
+func (application *Application) Deploy(ctx context.Context, channel *chan any, environments []string) {
 	dir, err := application.Service.Clone()
 	if err != nil {
 		log.Err(err).Msg("Cloning Service")
@@ -106,7 +106,7 @@ func (application *Application) Deploy(channel *chan any, environments []string)
 		responses.ChannelSend(channel, responses.Create("Using environment variables from client with length of "+strconv.FormatInt(int64(len(environments)), 10)))
 	}
 	log.Info().Str("dir", *dir).Msg("Build Path")
-	if err := docker.Build(channel, filepath.Join(*dir, application.Service.Build), application.Service.Name); err != nil {
+	if err := docker.Build(ctx, channel, filepath.Join(*dir, application.Service.Build), application.Service.Name); err != nil {
 		log.Err(err).Msg("Building Image")
 		responses.ChannelSend(channel, responses.CreateChannelError("Failed to save build image", err.Error()))
 		return
@@ -114,7 +114,7 @@ func (application *Application) Deploy(channel *chan any, environments []string)
 	var spawn []string
 	for _, dependency := range application.Dependencies {
 		dependency := dependency
-		id, err := dependency.Container.Deploy(channel, dependency.Image, []string{})
+		id, err := dependency.Container.Deploy(ctx, channel, dependency.Image, []string{})
 		if err != nil {
 			log.Err(err).Str("name", dependency.Name)
 			responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn dependency container "+dependency.Name, err.Error()))
@@ -126,7 +126,7 @@ func (application *Application) Deploy(channel *chan any, environments []string)
 			spawn = append(spawn, *id)
 		}
 	}
-	id, err := application.Service.Container.Deploy(channel, application.Service.GetImage(), environments)
+	id, err := application.Service.Container.Deploy(ctx, channel, application.Service.GetImage(), environments)
 	if err != nil {
 		responses.ChannelSend(channel, responses.CreateChannelError("Failed to spawn container "+application.Service.Name, err.Error()))
 		log.Err(err).Str("name", application.Service.Name).Msg("Spawning Container")
@@ -138,7 +138,7 @@ func (application *Application) Deploy(channel *chan any, environments []string)
 		log.Info().Str("name", application.Service.Name).Str("id", *id).Msg("Spawned Container")
 	}
 	for _, id := range spawn {
-		err := docker.Client.ContainerStart(context.TODO(), id, types.ContainerStartOptions{})
+		err := docker.Client.ContainerStart(ctx, id, types.ContainerStartOptions{})
 		if err != nil {
 			responses.ChannelSend(channel, responses.CreateChannelError("Failed to start container with id "+id, err.Error()))
 			log.Err(err).Str("id", id).Msg("Starting Container")
