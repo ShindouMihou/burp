@@ -3,6 +3,7 @@ package server
 import (
 	"burp/cmd/burp-agent/server/middlewares"
 	"burp/cmd/burp-agent/server/responses"
+	"burp/pkg/env"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -34,7 +35,10 @@ func Init(port int16) {
 		// of Burp is intended for additional configuration files, not massive
 		// dangerous binaries.
 		app.MaxMultipartMemory = 5 << 20
-		app.Use(logger.SetLogger(), middlewares.Authenticated)
+		if env.AgentMode.Or("release") != "local" {
+			app.Use(logger.SetLogger())
+		}
+		app.Use(middlewares.Authenticated)
 		for _, executioner := range Executioners {
 			executioner(app)
 		}
