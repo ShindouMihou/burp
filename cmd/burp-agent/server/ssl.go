@@ -3,8 +3,8 @@ package server
 import (
 	"burp/pkg/env"
 	"burp/pkg/fileutils"
+	"burp/pkg/utils"
 	"errors"
-	"github.com/portainer/libcrypto"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
@@ -60,7 +60,8 @@ func GetSsl() (cert string, key string, err error) {
 		return "", "", err
 	}
 	// Thanks Portainer for libcrypto! (CC: https://github.com/portainer/libcrypto)
-	err = libcrypto.GenerateCertsForHost("localhost", "0.0.0.0", certificatePath, keyPath,
+	// Although, we changed it a bit to make it into a root certificate.
+	err = utils.GenerateCertsForHost("localhost", "0.0.0.0", certificatePath, keyPath,
 		time.Now().AddDate(5, 0, 0))
 	if err != nil {
 		return "", "", err
