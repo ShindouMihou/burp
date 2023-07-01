@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"path/filepath"
 	"strconv"
 )
 
@@ -38,6 +39,7 @@ func Init(port int16) {
 			executioner(app)
 		}
 		app.NoRoute(func(ctx *gin.Context) { responses.NotFound.Reply(ctx) })
+		app.StaticFile("ssl.cert", filepath.Join(TemporarySslDirectory, "ssl.cert"))
 		if err := app.RunTLS(":"+strconv.FormatInt(int64(port), 10), cert, key); err != nil {
 			log.Panic().Err(err).Msg("Cannot Start Gin")
 			return

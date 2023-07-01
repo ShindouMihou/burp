@@ -86,7 +86,11 @@ var Login = &cli.Command{
 		console.Clear()
 		answers.Keys.Sanitize()
 		answers.Secrets.Sanitize()
-		response, err := answers.Secrets.Client().Get(answers.Server)
+		client, ok := answers.Secrets.ClientWithTls(answers.Keys.Name)
+		if !ok {
+			return nil
+		}
+		response, err := client.Get(answers.Server)
 		if err != nil {
 			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We failed to talk it out with Burp! It seems like something happened!")
 			fmt.Println(chalk.Red, err.Error())

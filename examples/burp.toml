@@ -12,7 +12,7 @@ version = 1.0
 [service]
 name = "primrose-backend"
 build = "core/"
-repository = "https://github.com/ShindouMihou/primrose"
+repository = { link = "https://github.com/ShindouMihou/primrose" }
 restart_policy = { name = "always" }
 
 [[dependencies]]
