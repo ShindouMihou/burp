@@ -55,6 +55,10 @@ func CreateWithClient(client *resty.Client, secrets *Secrets) *resty.Request {
 		SetAuthToken(secrets.Secret)
 }
 
+func CreateInsecureWith(secrets *Secrets) *resty.Request {
+	return CreateWithClient(InsecureClient, secrets)
+}
+
 func CreateInsecure() *resty.Request {
 	return InsecureClient.R()
 }

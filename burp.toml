@@ -27,7 +27,7 @@ includes = [
 [service]
 name = "burp"
 build = "/"
-repository = { link = "https://github.com/ShindouMihou/burp/" }
+repository = { link = "https://github.com/ShindouMihou/burp/", branch = "feat/remove-insecure-skip-verify" }
 restart_policy = { name = "always" }
 volumes = [
     #-----------------------------
