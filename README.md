@@ -18,8 +18,10 @@ To get started with Burp, you have to install the command-line tool on both your
 - [`GitHub Releases`](https://github.com/ShindouMihou/burp/releases)
 
 Once you have the command-line tool installed, please refer to the following:
-- [**Installing the Burp Agent on your remote server (TODO)**]()
-- [**Setting up Burp CLI on your development machine (TODO)**]()
+- [**Installing the Burp Agent on your remote server**](https://github.com/ShindouMihou/burp/wiki/Installing-the-Burp-Agent-on-your-remote-server)
+- [**Setting up Burp CLI on your development machine**](https://github.com/ShindouMihou/burp/wiki/Setting-up-Burp-CLI-on-your-development-machine)
+
+We recommend reading the entire wiki at [GitHub Wiki](wiki) to use Burp to its fullest.
 
 ### Prerequisities
 - Docker installed on both your development machine and your remote server.
