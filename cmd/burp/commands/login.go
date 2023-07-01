@@ -87,7 +87,8 @@ var Login = &cli.Command{
 		console.Clear()
 		answers.Keys.Sanitize()
 		answers.Secrets.Sanitize()
-		certificate, err := api.CreateInsecure().Get(filepath.Join(answers.Server, "ssl.cert"))
+		certificateRoute, _ := url.JoinPath(answers.Server, "ssl.cert")
+		certificate, err := api.CreateInsecure().Get(certificateRoute)
 		if err != nil {
 			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We failed to talk it out with Burp! It seems like something happened!")
 			fmt.Println(chalk.Red, err.Error())
