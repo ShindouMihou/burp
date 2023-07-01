@@ -6,6 +6,7 @@ import (
 	"burp/pkg/utils"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	giturl "github.com/kubescape/go-git-url"
@@ -18,7 +19,7 @@ import (
 var TemporaryCloneFolder = fileutils.JoinHomePath(".burpy", ".build", ".repos")
 
 func (service *Service) Clone() (*string, error) {
-	addr, err := giturl.NewGitURL(service.Repository)
+	addr, err := giturl.NewGitURL(service.Repository.Link)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +56,16 @@ func (service *Service) Clone() (*string, error) {
 		}
 	}
 	logger.Info().Bool("authenticated", transportAuth != nil).Msg("Cloning Repository")
-	_, err = git.PlainClone(directory, false, &git.CloneOptions{
-		URL:  service.Repository,
+	cloneOptions := &git.CloneOptions{
+		URL:  service.Repository.Link,
 		Auth: transportAuth,
-	})
+	}
+	if service.Repository.Branch != nil {
+		cloneOptions.SingleBranch = true
+		cloneOptions.ReferenceName = plumbing.ReferenceName(*service.Repository.Branch)
+		logger.Info().Str("branch", *service.Repository.Branch).Msg("Cloning into specified branch...")
+	}
+	_, err = git.PlainClone(directory, false, cloneOptions)
 	if err != nil {
 		return nil, err
 	}
