@@ -30,6 +30,7 @@ func Stream(ctx *gin.Context, action StreamingAction) {
 				return
 			default:
 				action(ctx2, channel)
+				cancel()
 			}
 		}
 	}()
