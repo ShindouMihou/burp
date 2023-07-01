@@ -30,7 +30,7 @@ We recommend reading the entire wiki at [GitHub Wiki](wiki) to use Burp to its f
 
 To deploy with Burp, you have to make a [`burp.toml`](burp.toml). To know how to create one, you can refer to the 
 following resources:
-- [`GitHub Wiki (TODO)`](https://github.com/ShindouMihou/burp/wiki)
+- [`GitHub Wiki`](https://github.com/ShindouMihou/burp/wiki)
 
 ## License
 
