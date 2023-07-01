@@ -4,6 +4,7 @@ import (
 	"burp/cmd/burp-agent/server"
 	"burp/cmd/burp-agent/server/routes/templates"
 	"burp/internal/burp"
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
@@ -17,12 +18,12 @@ import (
 // _
 var _ = server.Add(func(app *gin.Engine) {
 	app.POST("/application/remove", templates.StreamingConfigOnlyRoute(
-		func(channel *chan any, logger *zerolog.Logger, application *burp.Application) {
-			if ok := application.Service.Remove(channel, logger); !ok {
+		func(ctx context.Context, channel *chan any, logger *zerolog.Logger, application *burp.Application) {
+			if ok := application.Service.Remove(ctx, channel, logger); !ok {
 				return
 			}
 			for _, dependency := range application.Dependencies {
-				if ok := dependency.Remove(channel, logger); !ok {
+				if ok := dependency.Remove(ctx, channel, logger); !ok {
 					return
 				}
 			}

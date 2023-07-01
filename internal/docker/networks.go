@@ -7,6 +7,6 @@ import (
 
 func HasNetwork(name string) (bool, error) {
 	return has(func() (any, error) {
-		return Client.NetworkInspect(context.TODO(), name, types.NetworkInspectOptions{})
+		return Client.NetworkInspect(context.Background(), name, types.NetworkInspectOptions{})
 	})
 }

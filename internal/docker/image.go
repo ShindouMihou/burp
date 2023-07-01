@@ -20,7 +20,7 @@ import (
 )
 
 func HasImage(name string) (bool, error) {
-	images, err := Client.ImageList(context.TODO(), types.ImageListOptions{
+	images, err := Client.ImageList(context.Background(), types.ImageListOptions{
 		All: true,
 		Filters: filters.NewArgs(
 			filters.Arg("reference", name)),
@@ -39,7 +39,7 @@ func HasImage(name string) (bool, error) {
 	return false, nil
 }
 
-func Pull(channel *chan any, image string) error {
+func Pull(ctx context.Context, channel *chan any, image string) error {
 	image = strings.ToLower(image)
 	logger := log.With().Str("image", image).Logger()
 	ref, err := reference.ParseDockerRef(image)
@@ -60,7 +60,7 @@ func Pull(channel *chan any, image string) error {
 		registryAuth = base64.URLEncoding.EncodeToString(encoded)
 	}
 
-	response, err := Client.ImagePull(context.TODO(), image, types.ImagePullOptions{
+	response, err := Client.ImagePull(ctx, image, types.ImagePullOptions{
 		RegistryAuth: registryAuth,
 	})
 	if err != nil {
@@ -75,14 +75,14 @@ func Pull(channel *chan any, image string) error {
 	return Handle(channel, logger, bufio.NewScanner(response))
 }
 
-func Build(channel *chan any, dir string, name string) error {
+func Build(ctx context.Context, channel *chan any, dir string, name string) error {
 	logger := log.With().Str("build", name).Logger()
 
 	tar, err := archive.TarWithOptions(dir, &archive.TarOptions{})
 	if err != nil {
 		return err
 	}
-	build, err := Client.ImageBuild(context.TODO(), tar, types.ImageBuildOptions{
+	build, err := Client.ImageBuild(ctx, tar, types.ImageBuildOptions{
 		Tags: []string{fmt.Sprint("burp/", name)},
 	})
 	if err != nil {
