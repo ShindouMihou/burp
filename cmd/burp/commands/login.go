@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"burp/cmd/burp-agent/server"
 	"burp/cmd/burp/api"
 	"burp/cmd/burp/commands/logins"
 	"burp/pkg/console"
@@ -87,19 +86,6 @@ var Login = &cli.Command{
 		console.Clear()
 		answers.Keys.Sanitize()
 		answers.Secrets.Sanitize()
-		certificateRoute, _ := url.JoinPath(answers.Server, "ssl.cert")
-		certificate, err := api.CreateInsecure().Get(certificateRoute)
-		if err != nil {
-			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We failed to talk it out with Burp! It seems like something happened!")
-			fmt.Println(chalk.Red, err.Error())
-			return nil
-		}
-		sslCertificateLocation := filepath.Join(server.TemporarySslDirectory, answers.Keys.Name, "ssl.cert")
-		if err := fileutils.Save(sslCertificateLocation, certificate.Body()); err != nil {
-			fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We failed to talk it out with Burp! It seems like something happened!")
-			fmt.Println(chalk.Red, err.Error())
-			return nil
-		}
 		client, ok := answers.Secrets.ClientWithTls(answers.Keys.Name)
 		if !ok {
 			return nil
