@@ -49,6 +49,7 @@ var Here = &cli.Command{
 		}
 		_ = os.Setenv(env.BurpSecret.String(), hash)
 		_ = os.Setenv(env.BurpSignature.String(), "local")
+		_ = os.Setenv(env.AgentMode.String(), "local")
 
 		secrets := &api.Secrets{
 			Server:    "https://localhost:8875",
