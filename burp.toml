@@ -4,7 +4,7 @@
 # This is the official Burp.toml for the Burp deployment tool. You can reference this
 # to see how a Burp.toml would appear.
 #---------------------
-version = 1.0
+version = 1.1
 
 #------------
 # NOTE: When using `bind` with files that only exist on the client-side
@@ -27,7 +27,7 @@ includes = [
 [service]
 name = "burp"
 build = "/"
-repository = "https://github.com/ShindouMihou/burp"
+repository = { link = "https://github.com/ShindouMihou/burp/" }
 restart_policy = { name = "always" }
 volumes = [
     #-----------------------------

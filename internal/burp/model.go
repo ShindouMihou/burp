@@ -1,9 +1,14 @@
 package burp
 
 type Service struct {
-	Build      string `toml:"build" json:"build"`
-	Repository string `toml:"repository" json:"repository"`
+	Build      string     `toml:"build" json:"build"`
+	Repository Repository `toml:"repository" json:"repository"`
 	Container
+}
+
+type Repository struct {
+	Link   string  `toml:"link" json:"link"`
+	Branch *string `toml:"branch,omitempty"  json:"branch,omitempty"`
 }
 
 type Dependency struct {
