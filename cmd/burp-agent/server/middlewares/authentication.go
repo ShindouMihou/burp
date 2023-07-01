@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var SkipRoutes = []string{"/ssl.cert"}
+
 // Authenticated is a middleware that checks the authentication of a request.
 // It checks for the X-Burp-Signature first before proceeding with the Authorization
 // otherwise known as the Burp Secret.
@@ -17,6 +19,10 @@ import (
 // If it fails in either of the checks, then the middleware will stop them with a 401
 // HTTP status code.
 var Authenticated gin.HandlerFunc = func(ctx *gin.Context) {
+	if utils.AnyMatchString(SkipRoutes, ctx.FullPath()) {
+		ctx.Next()
+		return
+	}
 	signature := ctx.GetHeader("X-Burp-Signature")
 	if signature == "" || signature != env.BurpSignature.Get() {
 		responses.Unauthorized.Reply(ctx)

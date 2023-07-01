@@ -66,7 +66,7 @@ var Here = &cli.Command{
 		}()
 		go func() {
 			time.Sleep(5 * time.Second)
-			request := secrets.Client().
+			request := api.CreateInsecure().
 				EnableTrace().
 				SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 				SetDoNotParseResponse(true)

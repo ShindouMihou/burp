@@ -39,8 +39,11 @@ var Deploy = &cli.Command{
 		if !ok {
 			return nil
 		}
-		request := secrets.Client().
-			EnableTrace().
+		client, ok := secrets.ClientWithTls(answers.Keys.Name)
+		if !ok {
+			return nil
+		}
+		request := client.EnableTrace().
 			SetMultipartField("package[]", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 			SetDoNotParseResponse(true)
 		if ok && environmentFile != nil {

@@ -29,9 +29,12 @@ var Restart = &cli.Command{
 		if burp == nil || flow == nil {
 			return nil
 		}
+		client, ok := secrets.ClientWithTls(answers.Keys.Name)
+		if !ok {
+			return nil
+		}
 		var createRequest = func() *resty.Request {
-			return secrets.Client().
-				EnableTrace().
+			return client.EnableTrace().
 				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 				SetDoNotParseResponse(true)
 		}

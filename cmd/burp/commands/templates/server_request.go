@@ -103,8 +103,11 @@ func CreateServerRequestCommand(name string, description string, action ServerRe
 			if burp == nil || flow == nil {
 				return nil
 			}
-			request := secrets.Client().
-				EnableTrace().
+			client, ok := secrets.ClientWithTls(answers.Keys.Name)
+			if !ok {
+				return nil
+			}
+			request := client.EnableTrace().
 				SetMultipartField("burp", "burp.toml", "application/toml", bytes.NewReader(flow.Bytes())).
 				SetDoNotParseResponse(true)
 

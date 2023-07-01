@@ -2,11 +2,13 @@ package api
 
 import (
 	"bufio"
+	"burp/cmd/burp-agent/server"
 	"burp/cmd/burp-agent/server/responses"
 	"burp/pkg/fileutils"
 	"burp/pkg/utils"
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
@@ -14,15 +16,47 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
 )
 
-var Client = resty.New().
-	SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+var InsecureClient = resty.New().SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
-func Create(secrets *Secrets) *resty.Request {
-	return Client.R().
+func CreateClientWithTls(name string, secrets *Secrets) (*resty.Request, error) {
+	pool, err := CreateCertificatePool(name)
+	if err != nil {
+		return nil, err
+	}
+	client := resty.New().SetTLSClientConfig(&tls.Config{RootCAs: pool})
+	return CreateWithClient(client, secrets), nil
+}
+
+func CreateCertificatePool(name string) (*x509.CertPool, error) {
+	rootCertificates, _ := x509.SystemCertPool()
+	if rootCertificates == nil {
+		rootCertificates = x509.NewCertPool()
+	}
+
+	sslFileName := filepath.Join(server.TemporarySslDirectory, name, "ssl.cert")
+	file, err := fileutils.Open(sslFileName)
+	if err != nil {
+		return nil, err
+	}
+	certificate, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	rootCertificates.AppendCertsFromPEM(certificate)
+	return rootCertificates, nil
+}
+
+func CreateWithClient(client *resty.Client, secrets *Secrets) *resty.Request {
+	return client.R().
 		SetHeader("X-Burp-Signature", secrets.Signature).
 		SetAuthToken(secrets.Secret)
+}
+
+func CreateInsecure() *resty.Request {
+	return InsecureClient.R()
 }
 
 type Keys struct {
@@ -45,8 +79,15 @@ func (secrets *Secrets) Link(paths ...string) string {
 	return u
 }
 
-func (secrets *Secrets) Client() *resty.Request {
-	return Create(secrets)
+func (secrets *Secrets) ClientWithTls(name string) (*resty.Request, bool) {
+	client, err := CreateClientWithTls(name, secrets)
+	if err != nil {
+		fmt.Println(chalk.Red, "(◞‸◟；)", chalk.Reset, "We cannot verify the server's authenticity!")
+		fmt.Println(chalk.Red, "It is likely that the SSL certificate cannot be found, try removing then adding this server again.")
+		fmt.Println(chalk.Red, err.Error())
+		return nil, false
+	}
+	return client, true
 }
 
 func (secrets *Secrets) Sanitize() {
