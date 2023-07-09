@@ -33,6 +33,17 @@ func AllMatches[T any](a []T, predicate func(b T) bool) []T {
 	return l
 }
 
+func Only[T any](a []T, predicate func(b T) bool) []T {
+	var t []T
+	for _, v := range a {
+		v := v
+		if predicate(v) {
+			t = append(t, v)
+		}
+	}
+	return t
+}
+
 func Filter[T any](a []T, predicate func(b T) bool) *T {
 	for _, v := range a {
 		v := v
