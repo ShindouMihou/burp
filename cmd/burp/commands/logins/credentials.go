@@ -11,6 +11,7 @@ import (
 )
 
 var Folder string
+var Servers []string
 
 func Unlock(keys *api.Keys) (*api.Secrets, error) {
 	keys.Sanitize()

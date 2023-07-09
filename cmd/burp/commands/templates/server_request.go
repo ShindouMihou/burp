@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/AlecAivazis/survey/v2/core"
 	"github.com/go-resty/resty/v2"
 	"github.com/urfave/cli/v2"
 	"path/filepath"
@@ -17,14 +18,15 @@ import (
 var ServerRequestQuestions = []*survey.Question{
 	{
 		Name: "name",
-		Prompt: &survey.Input{
+		Prompt: &survey.Select{
 			Message: "On which server do you want to perform this action? (case-insensitive)",
-			Help:    "You will need this name to use it with the Burp cli.",
+			Help:    "If you haven't created one, use the `burp login` command.",
+			Options: []string{},
 		},
 		Validate: survey.ComposeValidators(
 			survey.Required,
 			func(ans interface{}) error {
-				file := fileutils.Sanitize(ans.(string))
+				file := fileutils.Sanitize(ans.(core.OptionAnswer).Value)
 				file = filepath.Join(logins.Folder, file+".json")
 
 				exists, err := utils.Exists(file)
@@ -32,7 +34,7 @@ var ServerRequestQuestions = []*survey.Question{
 					return err
 				}
 				if !exists {
-					return errors.New("you do not have any servers saved with that name")
+					return errors.New("cannot find credentials for that server, try adding it back again")
 				}
 				return nil
 			}),
