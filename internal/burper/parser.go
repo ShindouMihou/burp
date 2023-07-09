@@ -76,6 +76,7 @@ func extractFunctionCalls(match *matchedFunctionCall) (*FunctionCall, error) {
 	argsOpenIndex := 0
 
 	stack, end := 0, 0
+	hasParenthesis := false
 	for index, char := range callText {
 		index, char := index, char
 		if char == '(' {
@@ -88,6 +89,7 @@ func extractFunctionCalls(match *matchedFunctionCall) (*FunctionCall, error) {
 		if char == ')' {
 			stack--
 			if stack == 0 {
+				hasParenthesis = true
 				args = callText[argsOpenIndex:index]
 			}
 			continue
@@ -109,7 +111,12 @@ func extractFunctionCalls(match *matchedFunctionCall) (*FunctionCall, error) {
 		functionCall.As = utils.Ptr(string(components[size]))
 	}
 	functionCall.Function = string(bytes.ToLower(utils.Cut(components[0], '(')))
-	functionCall.Args = extractFunctionArguments(args)
+	if hasParenthesis {
+		functionCall.Args = extractFunctionArguments(args)
+	} else {
+		functionCall.Args = []string{functionCall.Function}
+		functionCall.Function = "use"
+	}
 	return &functionCall, nil
 }
 
