@@ -27,7 +27,7 @@ volumes = [
 
 [dependencies.environment]
 MONGO_INITDB_ROOT_USERNAME="root"
-MONGO_INITDB_ROOT_PASSWORD="[burp: Random(256) AS mongo.password]"
+MONGO_INITDB_ROOT_PASSWORD="[burp.Random(256) AS mongo.password]"
 
 #--------------------------
 # In this example, we have enabled server-side translations for .env file.
@@ -43,8 +43,8 @@ override = false
 server-side = true
 
 [environment.replacements]
-MONGO_URI="mongodb://root:[burp: Use(mongo.password)]@172.17.0.1:2732"
-SIGNING_KEY="[burp: Random(256)]"
+MONGO_URI="mongodb://root:[burp.mongo.password]@172.17.0.1:2732"
+SIGNING_KEY="[burp.Random(256)]"
 
 [[volumes]]
 name="mongo"
