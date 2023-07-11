@@ -24,10 +24,10 @@ func parse(line []byte) ([]FunctionCall, error) {
 }
 
 type FunctionCall struct {
-	Source   *matchedFunctionCall
-	Function string
-	Args     []string
-	As       *string
+	Source     *matchedFunctionCall
+	Identifier string
+	Args       []string
+	As         *string
 }
 
 type matchedFunctionCall struct {
@@ -62,7 +62,7 @@ func extractFunctionCalls(match *matchedFunctionCall) (*FunctionCall, error) {
 	if !utils.HasPrefix(match.Match, CompletePrefixKey) {
 		return nil, ErrMalformedBurpCall
 	}
-	// Splits "burp:" and "Function(args)" apart which leaves us with two parts.
+	// Splits "burp:" and "Identifier(args)" apart which leaves us with two parts.
 	parts := bytes.SplitN(match.Match, SeperatorKey, 2)
 	if len(parts) != 2 {
 		return nil, ErrMalformedBurpCall
@@ -110,12 +110,12 @@ func extractFunctionCalls(match *matchedFunctionCall) (*FunctionCall, error) {
 	if size > 1 && bytes.EqualFold(components[size-1], AsToken) {
 		functionCall.As = utils.Ptr(string(components[size]))
 	}
-	functionCall.Function = string(bytes.ToLower(utils.Cut(components[0], '(')))
+	functionCall.Identifier = string(bytes.ToLower(utils.Cut(components[0], '(')))
 	if hasParenthesis {
 		functionCall.Args = extractFunctionArguments(args)
 	} else {
-		functionCall.Args = []string{functionCall.Function}
-		functionCall.Function = "use"
+		functionCall.Args = []string{functionCall.Identifier}
+		functionCall.Identifier = "use"
 	}
 	return &functionCall, nil
 }

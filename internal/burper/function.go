@@ -24,9 +24,9 @@ func Add(function Function) bool {
 
 // Exec calls the function that was being called in the Burper statement.
 func (call *FunctionCall) Exec(line []byte, flow *Flow) ([]byte, error) {
-	function, exists := Functions[call.Function]
+	function, exists := Functions[call.Identifier]
 	if !exists {
-		return nil, errors.New("cannot find any function named " + call.Function)
+		return nil, errors.New("cannot find any function named " + call.Identifier)
 	}
 	value, err := function.Transformer(call, flow)
 	if err != nil {

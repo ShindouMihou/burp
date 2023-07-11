@@ -19,7 +19,7 @@ func (call *FunctionCall) MissingArgumentErr(argsType ...string) error {
 }
 
 func (call *FunctionCall) Err(message string) error {
-	return errors.New(message + " in " + call.Function + " call on \"" + string(call.Source.Match) + "\"")
+	return errors.New(message + " in " + call.Identifier + " call on \"" + string(call.Source.Match) + "\"")
 }
 
 func (call *FunctionCall) FormatErr(err error) error {
