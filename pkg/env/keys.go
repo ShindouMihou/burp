@@ -10,6 +10,8 @@ const (
 	DockerToml         Key = "DOCKER_TOML"
 	SslCertificatePath Key = "SSL_CERTIFICATE_PATH"
 	SslKeyPath         Key = "SSL_KEY_PATH"
+	ServerIp           Key = "SERVER_IP"
+	ServerHostname     Key = "SERVER_HOSTNAME"
 )
 
 type Key string

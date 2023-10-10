@@ -61,7 +61,7 @@ func GetSsl() (cert string, key string, err error) {
 	}
 	// Thanks Portainer for libcrypto! (CC: https://github.com/portainer/libcrypto)
 	// Although, we changed it a bit to make it into a root certificate.
-	err = utils.GenerateCertsForHost("localhost", "0.0.0.0", certificatePath, keyPath,
+	err = utils.GenerateCertsForHost(env.ServerHostname.Or("localhost"), env.ServerIp.Or("0.0.0.0"), certificatePath, keyPath,
 		time.Now().AddDate(5, 0, 0))
 	if err != nil {
 		return "", "", err
