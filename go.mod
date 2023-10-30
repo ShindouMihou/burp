@@ -9,7 +9,7 @@ require (
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/dchest/uniuri v1.2.0
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/docker/docker v24.0.2+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/gin-contrib/logger v0.2.5
